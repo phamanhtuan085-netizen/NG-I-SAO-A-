@@ -1635,3 +1635,20 @@ body.art .hero .brand-name .ap { color: var(--brand); }
 .brand-logo svg { width: 100%; height: 100%; display: block; }
 .hero .brand-logo { box-shadow: 0 6px 16px rgba(0, 0, 0, .22); }
 .eq-op.eq-word { font-family: var(--font-body); font-size: 1rem; font-weight: 700; color: var(--brand-ink); background: var(--brand-soft, #FDECEC); border-radius: 99px; padding: 2px 10px; }
+
+/* ===== Toán song ngữ ===== */
+.lang-seg { display: inline-flex; align-self: flex-start; background: var(--paper-2); border-radius: 99px; padding: 3px; gap: 2px; margin-bottom: 10px; }
+.lang-seg button { border: 0; background: transparent; color: var(--ink-3); font: 600 .78rem/1 var(--font-body); padding: 7px 12px; border-radius: 99px; cursor: pointer; }
+.lang-seg button[aria-pressed="true"] { background: var(--sheet); color: var(--brand-ink); box-shadow: 0 1px 3px rgba(0, 0, 0, .14); }
+.qtext.en-q { font-weight: 600; }
+.qtext.vi-sub, .opt small.vi-sub { display: block; color: var(--ink-3); font-weight: 400; font-style: italic; }
+.qtext.vi-sub { font-size: .92em; margin-top: 6px; border-left: 3px solid var(--brand-soft); padding-left: 10px; }
+.opt small.vi-sub { font-size: .78em; margin-top: 2px; }
+.qcard .linkbtn { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; }
+.gd-rule-en { background: var(--sheet); border-style: dashed; }
+.gd-rule-en .gd-lab .mini-say { margin-left: 4px; }
+.terms { display: flex; flex-wrap: wrap; gap: 8px; }
+.term { display: inline-flex; align-items: center; gap: 8px; border: 1.5px solid var(--line); background: var(--sheet); border-radius: 12px; padding: 7px 10px; font: inherit; color: var(--ink-2); cursor: pointer; text-align: left; }
+.term b { color: var(--ink); font-weight: 700; }
+.term span { font-size: .86rem; }
+.term svg { width: 16px; height: 16px; color: var(--brand-ink); flex: none; }
