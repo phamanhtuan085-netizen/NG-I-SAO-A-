@@ -1,0 +1,25 @@
+# Thư viện & bản dựng
+node_modules/
+android/app/build/
+android/build/
+android/.gradle/
+android/local.properties
+ios/App/build/
+ios/DerivedData/
+# Khóa bí mật — KHÔNG đưa lên GitHub
+*.jks
+*.keystore
+*.p8
+*.p12
+*.mobileprovision
+BAO-MAT/
+.DS_Store
+# Mã nguồn giao diện: bản dựng thử và ảnh kiểm thử
+web-src/dist/
+web-src/test/shots/
+web-src/test/lessons/
+web-src/test/lessons2/
+ai-proxy/test/_worker.mjs
+web-src/test/theme/
+web-src/test/art/
+web-src/test/qa/

@@ -1,0 +1,27 @@
+{
+  "appId": "vn.hocviengoisao.app",
+  "appName": "Ngôi Sao A+",
+  "webDir": "www",
+  "backgroundColor": "#D71E28",
+  "android": {
+    "backgroundColor": "#D71E28",
+    "allowMixedContent": false
+  },
+  "ios": {
+    "backgroundColor": "#D71E28",
+    "contentInset": "never"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 900,
+      "launchAutoHide": true,
+      "backgroundColor": "#D71E28",
+      "showSpinner": false
+    },
+    "SystemBars": {
+      "insetsHandling": "css",
+      "style": "DARK",
+      "initialViewportFitValueHint": "cover"
+    }
+  }
+}

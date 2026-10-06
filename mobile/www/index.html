@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#D71E28">
+<meta name="color-scheme" content="light dark">
+<meta name="format-detection" content="telephone=no">
+<meta name="description" content="Luyện Toán, Tiếng Anh và Tư duy cho học sinh mầm non đến lớp 9 — bài tập sinh tự động, lời giải từng bước, Góc phụ huynh theo dõi tiến bộ.">
+<title>Ngôi Sao A+</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Ngôi Sao A+">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="capacitor.js"></script>
+<script src="native.js"></script>
+<script src="ai-config.js"></script>
+<script src="video-config.js"></script>
+<script src="app.js"></script>
+<script>
+  (function () {
+    var nat = window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
+    if (!nat && 'serviceWorker' in navigator && location.protocol === 'https:' && window.top === window) {
+      window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+    }
+  })();
+</script>
+</body>
+</html>

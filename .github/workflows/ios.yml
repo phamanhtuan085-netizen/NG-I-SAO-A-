@@ -1,0 +1,67 @@
+# Tự động đóng gói iOS trên máy Mac của GitHub và tải lên App Store Connect (TestFlight) — không cần máy Mac riêng.
+# Cần 4 Secrets: ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8_BASE64 (khóa API App Store Connect, vai trò Admin), APPLE_TEAM_ID.
+# Trước khi chạy: tạo ứng dụng trong App Store Connect với Bundle ID vn.hocviengoisao.app.
+name: iOS – đóng gói & tải lên TestFlight
+on:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: macos-26
+    defaults:
+      run:
+        working-directory: mobile
+    env:
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      HVNS_AI_ENDPOINT: ${{ secrets.HVNS_AI_ENDPOINT }}
+      HVNS_AI_APP_KEY: ${{ secrets.HVNS_AI_APP_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - name: Cài thư viện
+        run: npm ci
+      - name: Cấu hình Gia sư AI (chỉ khi có Secrets HVNS_AI_ENDPOINT, HVNS_AI_APP_KEY)
+        if: env.HVNS_AI_ENDPOINT != ''
+        run: node scripts/write-ai-config.js
+      - name: Chép giao diện vào dự án iOS
+        run: |
+          npx cap sync ios
+      - name: Khóa API App Store Connect
+        env:
+          ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
+        run: |
+          mkdir -p "$HOME/private_keys"
+          echo "$ASC_KEY_P8_BASE64" | base64 --decode > "$HOME/private_keys/AuthKey_${ASC_KEY_ID}.p8"
+          echo "BUILD_NO=$(date -u +%y%m%d%H%M)" >> "$GITHUB_ENV"
+      - name: Đóng gói (archive) và tự ký
+        run: |
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release \
+            -destination 'generic/platform=iOS' -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$HOME/private_keys/AuthKey_${ASC_KEY_ID}.p8" \
+            -authenticationKeyID "$ASC_KEY_ID" -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" CODE_SIGN_STYLE=Automatic CURRENT_PROJECT_VERSION="$BUILD_NO" \
+            archive
+      - name: Xuất bản dựng và tải lên App Store Connect
+        run: |
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>upload</string>
+            <key>teamID</key><string>${APPLE_TEAM_ID}</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>manageAppVersionAndBuildNumber</key><false/>
+          </dict></plist>
+          PLIST
+          xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" -exportPath "$RUNNER_TEMP/export" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$HOME/private_keys/AuthKey_${ASC_KEY_ID}.p8" \
+            -authenticationKeyID "$ASC_KEY_ID" -authenticationKeyIssuerID "$ASC_ISSUER_ID"

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Ngôi Sao A+</string>
+    <string name="title_activity_main">Ngôi Sao A+</string>
+    <string name="package_name">vn.hocviengoisao.app</string>
+    <string name="custom_url_scheme">vn.hocviengoisao.app</string>
+</resources>

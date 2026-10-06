@@ -1,0 +1,82 @@
+# Đóng gói Android trên GitHub (miễn phí với kho công khai).
+# Tự chạy khi đổi mobile/. Kết quả:
+#   • Bản phát hành "Ngôi Sao A+ cho Android" → file NgoiSaoAPlus.apk (link tải cố định trên trang giới thiệu)
+#   • Mục Artifacts: NgoiSaoAPlus.apk và NgoiSaoAPlus.aab (nộp Google Play — chỉ có khi đã nạp khóa ký)
+# Khóa ký: Settings → Secrets and variables → Actions → 4 Secrets ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD,
+# ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD. Chưa có khóa thì đóng gói bản thử (debug) để cài thử.
+name: Android – đóng gói APK & AAB
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['mobile/**', '.github/workflows/android.yml']
+permissions:
+  contents: write
+concurrency:
+  group: android
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      HAS_KEY: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+      HVNS_VERSION_CODE: ${{ github.run_number }}
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Cài thư viện
+        run: npm ci
+      - name: Chép giao diện vào dự án Android
+        run: |
+          npx cap sync android
+          chmod +x android/gradlew
+      - name: Giải mã khóa ký
+        if: env.HAS_KEY == 'true'
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/upload.jks"
+          echo "HVNS_KEYSTORE_FILE=$RUNNER_TEMP/upload.jks" >> "$GITHUB_ENV"
+      - name: Đóng gói bản ký (APK + AAB)
+        if: env.HAS_KEY == 'true'
+        working-directory: mobile/android
+        env:
+          HVNS_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          HVNS_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          HVNS_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: ./gradlew --no-daemon assembleRelease bundleRelease
+      - name: Đóng gói bản thử (chưa có khóa ký)
+        if: env.HAS_KEY != 'true'
+        working-directory: mobile/android
+        run: ./gradlew --no-daemon assembleDebug
+      - name: Đặt tên file
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/out"
+          if [ -f android/app/build/outputs/apk/release/app-release.apk ]; then cp android/app/build/outputs/apk/release/app-release.apk "$GITHUB_WORKSPACE/out/NgoiSaoAPlus.apk"; else cp android/app/build/outputs/apk/debug/app-debug.apk "$GITHUB_WORKSPACE/out/NgoiSaoAPlus.apk"; fi
+          if [ -f android/app/build/outputs/bundle/release/app-release.aab ]; then cp android/app/build/outputs/bundle/release/app-release.aab "$GITHUB_WORKSPACE/out/NgoiSaoAPlus.aab"; fi
+          ls -la "$GITHUB_WORKSPACE/out"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ngoi-sao-a-plus-android-${{ github.run_number }}
+          path: out/*
+      - name: Cập nhật link tải APK
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: android
+          name: Ngôi Sao A+ cho Android
+          body: |
+            File cài đặt Android mới nhất của Ngôi Sao A+ (bản dựng số ${{ github.run_number }}).
+            Tải NgoiSaoAPlus.apk, mở file và cho phép cài ứng dụng không rõ nguồn nếu máy hỏi.
+          files: out/NgoiSaoAPlus.apk
+          make_latest: true
