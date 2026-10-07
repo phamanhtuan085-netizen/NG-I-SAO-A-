@@ -2,7 +2,7 @@
 (function () {
   var C = window.Capacitor;
   if (!C || !C.isNativePlatform || !C.isNativePlatform() || !C.registerPlugin) return;
-  ['App', 'Preferences', 'Filesystem', 'Share', 'SplashScreen', 'TextToSpeech'].forEach(function (n) {
+  ['App', 'Preferences', 'Filesystem', 'Share', 'SplashScreen', 'TextToSpeech', 'NativePurchases'].forEach(function (n) {
     try { if (!C.Plugins[n] && C.isPluginAvailable(n)) C.registerPlugin(n); } catch (e) { console.warn(e); }
   });
 })();

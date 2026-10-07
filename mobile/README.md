@@ -1,6 +1,6 @@
-# Học viện Ngôi Sao — dự án ứng dụng Android & iOS
+# Ngôi Sao A+ — dự án ứng dụng Android & iOS
 
-Ứng dụng luyện Toán, Tiếng Anh, Tư duy cho học sinh mầm non đến lớp 9. Giao diện là web (HTML/JS, chạy ngoại tuyến), được
+Ứng dụng luyện Toán song ngữ Anh – Việt, Tiếng Anh, Tư duy cho học sinh mầm non đến lớp 9 — tải miễn phí, gói Premium theo tuần / tháng / năm. Giao diện là web (HTML/JS, chạy ngoại tuyến), được
 đóng gói thành ứng dụng gốc bằng **Capacitor 8**. Tài liệu này dành cho người đóng gói / kỹ thuật viên; hướng dẫn từng bước cho
 chủ ứng dụng nằm ở tệp `HUONG-DAN-DUA-LEN-CUA-HANG.pdf` ở thư mục gốc của gói.
 
@@ -9,12 +9,12 @@ chủ ứng dụng nằm ở tệp `HUONG-DAN-DUA-LEN-CUA-HANG.pdf` ở thư m�
 | Mục | Giá trị |
 |---|---|
 | Mã ứng dụng | `vn.hocviengoisao.app` (Android `applicationId`/`namespace`, iOS Bundle ID) |
-| Phiên bản | 1.0.0 — Android `versionName` trong `android/app/build.gradle`, iOS `MARKETING_VERSION` trong dự án Xcode |
+| Phiên bản | 1.1.0 — Android `versionName` trong `android/app/build.gradle`, iOS `MARKETING_VERSION` trong dự án Xcode |
 | Số bản dựng | Android `versionCode` lấy từ biến `HVNS_VERSION_CODE` (CI = số lần chạy); iOS `CURRENT_PROJECT_VERSION` (CI = ngày giờ) |
 | Android | minSdk 24 · compile/target SDK 36 · JDK 21 · Android Studio bản mới (hỗ trợ AGP của Capacitor 8) |
 | iOS | iOS 15.0+ · iPhone & iPad · Swift Package Manager · Xcode 26 (bắt buộc khi nộp App Store từ 28/4/2026) |
-| Plugin | App, Preferences, Filesystem, Share, SplashScreen, @capacitor-community/text-to-speech |
-| Quyền | Android: chỉ `INTERNET` (mặc định của Capacitor); chọn ảnh đại diện dùng trình chọn tệp của hệ thống nên không cần quyền thêm. iOS: `NSPhotoLibraryUsageDescription`, `NSCameraUsageDescription` trong `Info.plist` — chỉ hỏi khi phụ huynh bấm “Tải ảnh từ máy” |
+| Plugin | App, Preferences, Filesystem, Share, SplashScreen, @capacitor-community/text-to-speech, @capgo/native-purchases (mua gói trong ứng dụng: StoreKit 2 / Google Play Billing 7) |
+| Quyền | Android: `INTERNET` (mặc định của Capacitor) và `com.android.vending.BILLING` (mua gói Premium); chọn ảnh đại diện dùng trình chọn tệp của hệ thống nên không cần quyền thêm. iOS: `NSPhotoLibraryUsageDescription`, `NSCameraUsageDescription` trong `Info.plist` — chỉ hỏi khi phụ huynh bấm “Tải ảnh từ máy” |
 | Màu thương hiệu | Đỏ `#D71E28` (tối: `#7E0E15`) — `capacitor.config.json`, `android/app/src/main/res/values/hvns_colors.xml`, ảnh gốc trong `assets/` (tạo lại bằng `node web-src/build-app.js` rồi `npm run assets`) |
 | Quyền riêng tư iOS | `ios/App/App/PrivacyInfo.xcprivacy`: không theo dõi, không thu thập; khai lý do dùng UserDefaults (CA92.1) và thời gian tệp (C617.1) cho plugin Preferences/Filesystem |
 | Mã hóa | `ITSAppUsesNonExemptEncryption = NO` trong `Info.plist` |
@@ -73,6 +73,46 @@ Safari đời cũ (trước iOS 18.4) không phát Opus trong vỏ Ogg: ứng d�
   (khóa App Store Connect API, quyền Admin), `APPLE_TEAM_ID`. Quy trình tự ký (cloud signing) và tải bản dựng lên TestFlight.
 - Cần tạo trước App ID `vn.hocviengoisao.app` (developer.apple.com → Identifiers) và ứng dụng trong App Store Connect.
 
+## Gói Premium (tải miễn phí + mua trong ứng dụng)
+
+Mã nguồn: `web-src/src/55-premium.js` (quyền lợi, phạm vi miễn phí, mua / khôi phục, mã kích hoạt) và `web-src/src/69-ui-premium.js`
+(màn mở khóa có cổng phụ huynh, thẻ Gói Premium trong Góc phụ huynh). Bản miễn phí: 3 bài đầu của lộ trình mỗi môn ở mọi lớp/cấp
+(luyện tập + bài giảng), 2 truyện và 3 mẫu câu đầu mỗi cấp, từ mới hằng ngày, Thử thách 60 giây, Sổ tay lỗi sai, Cẩm nang công thức.
+
+**Sản phẩm cần tạo trên cửa hàng** (mã phải khớp đúng):
+
+| Cửa hàng | Sản phẩm | Ghi chú |
+|---|---|---|
+| App Store Connect | 3 gói đăng ký tự gia hạn trong một nhóm “Ngôi Sao A+ Premium”: `vn.hocviengoisao.premium.year` (1 năm), `vn.hocviengoisao.premium.month` (1 tháng), `vn.hocviengoisao.premium.week` (1 tuần) | Ưu đãi giới thiệu “Dùng thử miễn phí 7 ngày” cho gói năm. Bật Family Sharing nếu muốn cả gia đình dùng chung |
+| Google Play Console | 1 gói thuê bao `vn.hocviengoisao.premium` với 3 gói cơ sở: `year` (P1Y), `month` (P1M), `week` (P1W), tự gia hạn | Ưu đãi dùng thử 7 ngày trên gói cơ sở `year` (mã ưu đãi gợi ý `dung-thu-7-ngay`, đối tượng: khách hàng mới) |
+
+Giá đề xuất: năm 599.000đ, tháng 99.000đ, tuần 29.000đ (giá thật đặt trên cửa hàng; ứng dụng luôn hiển thị giá lấy từ cửa hàng).
+Kiểm thử: iOS dùng tài khoản Sandbox / TestFlight; Android thêm Gmail vào **License testing** và tải bản từ kênh **Internal testing**.
+
+**Cấu hình bản dựng** — tệp tùy chọn `store-config.json` ở thư mục dự án (build-app.js đọc và ghi ra `www/store-config.js`):
+
+```json
+{ "premium": true,
+  "prices": { "year": 599000, "month": 99000, "week": 29000 },
+  "contact": { "name": "Tên người bán", "zalo": "09xx xxx xxx", "phone": "", "note": "Ghi chú hiện trong màn mua mã" },
+  "links": { "terms": "https://…/dieu-khoan-su-dung.html", "privacy": "https://…/chinh-sach-quyen-rieng-tu.html", "buy": "https://…/#bang-gia" } }
+```
+
+`prices` và `contact` chỉ hiện ở bản web / APK (bán bằng mã kích hoạt). `"premium": false` tắt hẳn Premium (mở toàn bộ).
+
+**Ba kênh phát hành:**
+- AAB nộp Google Play và bản iOS: `channel = "store"` → mua trong ứng dụng, có nút Khôi phục giao dịch và Quản lý gói, không có ô nhập mã (đúng quy định cửa hàng).
+- APK tải từ trang giới thiệu: quy trình `android.yml` đổi `www/store-config.js` thành `"channel":"apk"` trước khi đóng gói APK → dùng mã kích hoạt.
+- Bản web (link cài): luôn dùng mã kích hoạt. Mã mở được bằng link `…/app/#kh=<mã>` hoặc dán vào Góc phụ huynh → Cài đặt → Gói Premium.
+
+**Mã kích hoạt:** dạng `NSA1.<dữ liệu>.<chữ ký>` (ECDSA P-256). Ứng dụng chỉ chứa khóa công khai (`PUB` trong `55-premium.js`),
+khóa bí mật nằm trong công cụ `BAO-MAT/TAO-MA-KICH-HOAT-PREMIUM.html` (chạy ngoại tuyến, có sổ mã đã bán, xuất CSV).
+Lộ khóa bí mật → tạo cặp khóa mới, thay `PUB` trong `55-premium.js` và khóa trong công cụ, dựng lại (mã cũ hết hiệu lực).
+
+Kiểm thử: `node web-src/test/premium.test.js` (mã kích hoạt, phạm vi miễn phí, giả lập StoreKit / Play Billing) và
+`python3 web-src/test/premium_test.py` (giao diện: bản miễn phí, cổng phụ huynh, nhập mã, link kích hoạt, mua trên iOS/Android giả lập).
+Quyền lợi được kiểm tra ngay trên máy (giao dịch StoreKit 2 đã xác minh / Play Billing); muốn chống gian lận chặt hơn có thể thêm máy chủ xác minh hóa đơn sau.
+
 ## Gia sư AI trong bản cài đặt (tùy chọn)
 
 Mặc định `www/ai-config.js` để trống → bản cài đặt không có Gia sư AI, không gửi dữ liệu đi đâu. Muốn bật: dựng máy chủ theo
@@ -84,5 +124,5 @@ Trong ứng dụng, phụ huynh phải bật ở **Góc phụ huynh → Cài đ�
 - Không đổi `appId` sau khi đã nộp lên cửa hàng. Muốn đổi thì phải đổi trước lần nộp đầu tiên (cả `capacitor.config.json`,
   `android/app/build.gradle`, thư mục gói Java của `MainActivity` và Bundle ID trong Xcode).
 - Mỗi lần nộp bản mới: tăng `versionName`/`MARKETING_VERSION` (ví dụ 1.0.1); số bản dựng do CI tự tăng.
-- Các quy trình GitHub Actions được viết sẵn nhưng chưa chạy thử trên máy chủ GitHub/Apple thật. Nếu lần chạy đầu báo lỗi,
-  xem nhật ký của bước bị đỏ và chỉnh theo thông báo.
+- Quy trình Android đã chạy thành công trên GitHub (bản APK thử). Quy trình iOS cần tài khoản Apple Developer và 4 Secrets ở trên;
+  nếu lần chạy đầu báo lỗi, xem nhật ký của bước bị đỏ và chỉnh theo thông báo.

@@ -32,6 +32,7 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="com.android.vending.BILLING" />
     <!-- Luyện nói tiếng Anh: chỉ bật micro khi con bấm nút ghi âm; bản ghi xử lý ngay trên máy, không lưu, không gửi đi -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />

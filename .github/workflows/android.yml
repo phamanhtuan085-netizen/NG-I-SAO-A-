@@ -2,6 +2,7 @@
 # Tự chạy khi đổi mobile/. Kết quả:
 #   • Bản phát hành "Ngôi Sao A+ cho Android" → file NgoiSaoAPlus.apk (link tải cố định trên trang giới thiệu)
 #   • Mục Artifacts: NgoiSaoAPlus.apk và NgoiSaoAPlus.aab (nộp Google Play — chỉ có khi đã nạp khóa ký)
+# Gói Premium: AAB (Google Play) mua trong ứng dụng; APK tải ngoài cửa hàng dùng mã kích hoạt (store-config.js → "apk").
 # Khóa ký: Settings → Secrets and variables → Actions → 4 Secrets ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD,
 # ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD. Chưa có khóa thì đóng gói bản thử (debug) để cài thử.
 name: Android – đóng gói APK & AAB
@@ -55,11 +56,20 @@ jobs:
           HVNS_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           HVNS_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           HVNS_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: ./gradlew --no-daemon assembleRelease bundleRelease
+        run: |
+          # AAB nộp Google Play: mua gói Premium trong ứng dụng (Google Play Billing)
+          ./gradlew --no-daemon bundleRelease
+          # APK tải ngoài cửa hàng: mở Premium bằng mã kích hoạt
+          sed -i 's/"channel":"store"/"channel":"apk"/' app/src/main/assets/public/store-config.js
+          grep -q '"channel":"apk"' app/src/main/assets/public/store-config.js
+          ./gradlew --no-daemon assembleRelease
       - name: Đóng gói bản thử (chưa có khóa ký)
         if: env.HAS_KEY != 'true'
         working-directory: mobile/android
-        run: ./gradlew --no-daemon assembleDebug
+        run: |
+          sed -i 's/"channel":"store"/"channel":"apk"/' app/src/main/assets/public/store-config.js
+          grep -q '"channel":"apk"' app/src/main/assets/public/store-config.js
+          ./gradlew --no-daemon assembleDebug
       - name: Đặt tên file
         run: |
           mkdir -p "$GITHUB_WORKSPACE/out"
