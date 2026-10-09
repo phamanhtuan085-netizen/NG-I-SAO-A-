@@ -128,11 +128,19 @@ Mặc định `www/ai-config.js` để trống → bản cài đặt không có 
 `ai-proxy/README.md`, sau đó thêm Secrets `HVNS_AI_ENDPOINT`, `HVNS_AI_APP_KEY` (CI tự ghi cấu hình) hoặc sửa trực tiếp `www/ai-config.js`.
 Trong ứng dụng, phụ huynh phải bật ở **Góc phụ huynh → Cài đặt**. Nhớ cập nhật khai báo quyền riêng tư trên hai cửa hàng.
 
-**Hỏi bài** (`69-ui-ask.js`): con chụp ảnh đề bài (thu nhỏ còn cạnh dài 1600 px, JPEG) hoặc gõ đề. Khi có Gia sư AI: gửi
-`task: 'homework'` kèm ảnh tới máy chủ (`ai-proxy/worker.js` nhận ảnh ≤ ~1,2 MB, không lưu) → hướng dẫn theo mục Đề bài / Gợi ý / Các bước
-làm / Đáp án (giấu đến khi con bấm xem) / Mẹo nhớ; ở bản có Premium, gia sư AI hướng dẫn bài tập thuộc gói Premium. Luôn có nút
-**Gửi thầy cô / bố mẹ** (chia sẻ ảnh + câu hỏi qua Zalo, Messenger… bằng plugin Share / Web Share). Ảnh không lưu vào máy.
-Kiểm thử: `python3 web-src/test/ask_test.py`.
+**Hỏi bài** (`69-ui-ask.js`): con **gõ đề bài** (có phím nhanh + − × : ( ) = x, giữ bàn phím điện thoại không bị tắt) hoặc chụp ảnh đề bài.
+- **Bài tính tự hướng dẫn ngay trên máy** (`59-solve.js`, không cần AI, không cần mạng): cộng, trừ, nhân, chia số tự nhiên và số thập phân,
+  biểu thức (ngoặc → nhân, chia → cộng, trừ), tìm x (quy tắc tìm thành phần chưa biết; lớp 6+: chuyển vế, số âm), số đo cùng đơn vị,
+  nhiều phép tính trong một lần gõ, con tự ghi kết quả thì kiểm tra giúp. Lời giảng như thầy cô: đặt tính trên giấy ô li (nhớ, mượn,
+  tích riêng, chia → nhân → trừ → hạ), nhẩm (đếm thêm, tách 10, bảng nhân, số tròn chục), hiện **từng bước**, đáp án + thử lại giấu đến
+  khi con bấm xem. Bản miễn phí: `PREM.FREE.solve` = 3 bài mỗi ngày (xem lại bài vừa xem không tính); Premium: không giới hạn.
+  Chưa hỗ trợ (báo con gửi thầy cô): phân số, phần trăm, lũy thừa, bài toán có lời văn.
+- **Gia sư AI** (khi có): đề không phải bài tính / chỉ có ảnh → gửi `task: 'homework'` kèm ảnh (thu nhỏ còn cạnh dài 1600 px, JPEG) tới
+  máy chủ (`ai-proxy/worker.js` nhận ảnh ≤ ~1,2 MB, không lưu) → hướng dẫn theo mục Đề bài / Gợi ý / Các bước làm / Đáp án (giấu đến khi
+  con bấm xem) / Mẹo nhớ; ở bản có Premium, gia sư AI thuộc gói Premium.
+- Luôn có nút **Gửi thầy cô / bố mẹ** (chia sẻ ảnh + câu hỏi qua Zalo, Messenger… bằng plugin Share / Web Share). Ảnh không lưu vào máy.
+
+Kiểm thử: `node web-src/test/solve.test.js` (≈ 22 000 phép kiểm, có phép tính ngẫu nhiên đối chiếu máy tính) và `python3 web-src/test/ask_test.py`.
 
 ## Lưu ý
 
