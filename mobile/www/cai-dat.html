@@ -340,8 +340,10 @@ footer a { color: var(--ink-2); text-underline-offset: 3px; }
   var openWebBtn = '<a class="btn line" href="./">' + I.play + 'Mở app trên trình duyệt</a>';
   var afterApk = function () { return codeOk ? '<p class="muted" style="margin:10px 0 0">Cài APK xong: mở app → <b>Góc phụ huynh → Gói Premium → Nhập mã kích hoạt</b> → dán mã (đã chép sẵn khi bấm tải).</p>' : ''; };
   var apkBlock = function () {
-    return '<div class="alt"><h3>Cách khác: tải tệp cài đặt APK</h3><p>Bản cài đặt Android đầy đủ, khoảng 29 MB. Máy có thể hỏi cho phép cài ứng dụng không rõ nguồn: bấm <b>Cài đặt</b> → <b>Cho phép</b>.</p>' +
-      '<a class="btn line" id="apk" href="' + APK + '">' + I.down + 'Tải tệp APK</a>' + afterApk() + '</div>';
+    // iPhone, iPad không mở được tệp APK: không đưa nút tải để khỏi tải nhầm
+    if (ios) return '<div class="alt"><h3>Tệp cài đặt APK</h3><p>Tệp APK chỉ dành cho điện thoại Android. Trên iPhone, iPad, cài theo hướng dẫn ở mục <b>iPhone, iPad</b>.</p></div>';
+    return '<div class="alt"><h3>Cách khác: tải tệp cài đặt APK</h3><p>Bản cài đặt Android đầy đủ, khoảng 29 MB, chỉ dùng cho máy Android. Máy có thể hỏi cho phép cài ứng dụng không rõ nguồn: bấm <b>Cài đặt</b> → <b>Cho phép</b>.</p>' +
+      '<a class="btn line" id="apk" href="' + APK + '">' + I.down + 'Tải tệp APK (Android)</a>' + afterApk() + '</div>';
   };
   var views = {
     ios: function () {

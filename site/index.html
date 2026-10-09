@@ -149,6 +149,7 @@ section > p.lead { margin-top: 12px; }
 .dev ol li { margin: 4px 0; }
 .dev .btn { width: 100%; justify-content: center; }
 .dev .btn + .btn { margin-top: 10px; }
+.apk-note { margin: 10px 0 0; font-size: .9rem; color: var(--ink-3); }
 .one-link { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-top: 18px; }
 .one-link span { font-size: .92rem; color: var(--ink-3); overflow-wrap: anywhere; }
 .soon { margin-top: 18px; font-size: .95rem; color: var(--ink-3); }
@@ -382,7 +383,7 @@ footer { padding: 36px 0 48px; border-top: 2px dashed var(--line-2); margin-top:
             <li>Mở app từ biểu tượng ngôi sao. Muốn dùng tệp APK: bấm <b>Tải tệp APK</b>, cho phép cài nếu máy hỏi.</li>
           </ol>
           <a class="btn primary" href="app/cai-dat.html">Cài trên Android</a>
-          <a class="btn" href="https://github.com/phamanhtuan085-netizen/NG-I-SAO-A-/releases/latest/download/NgoiSaoAPlus.apk">Tải tệp APK</a>
+          <a class="btn" href="https://github.com/phamanhtuan085-netizen/NG-I-SAO-A-/releases/latest/download/NgoiSaoAPlus.apk">Tải tệp APK (Android)</a>
         </div>
         <div class="dev">
           <h3>Máy tính</h3>
@@ -403,5 +404,19 @@ footer { padding: 36px 0 48px; border-top: 2px dashed var(--line-2); margin-top:
     <span><a href="chinh-sach-quyen-rieng-tu.html">Chính sách quyền riêng tư</a> · <a href="dieu-khoan-su-dung.html">Điều khoản sử dụng</a></span>
   </footer>
 </div>
+<script>
+  // iPhone, iPad không mở được tệp APK: thay nút tải APK bằng lời nhắc để khách không tải nhầm
+  (function () {
+    var ua = navigator.userAgent || '';
+    var ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && (navigator.maxTouchPoints || 0) > 1);
+    if (!ios) return;
+    Array.prototype.forEach.call(document.querySelectorAll('a[href$=".apk"]'), function (a) {
+      var n = document.createElement('p');
+      n.className = 'apk-note';
+      n.textContent = 'Tệp APK chỉ dành cho Android. iPhone, iPad cài bằng nút “Cài trên iPhone, iPad”.';
+      a.parentNode.replaceChild(n, a);
+    });
+  })();
+</script>
 </body>
 </html>
