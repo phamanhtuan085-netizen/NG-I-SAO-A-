@@ -1965,7 +1965,7 @@ body.hxp { background: #FFFFFF; }
 .sv-check { font-weight: 500; color: var(--ink-2); font-size: .94rem; }
 .sv-ok .ic, .sv-bad .ic, .sv-check .ic { width: 18px; height: 18px; flex: none; margin-top: 2px; }
 .sv-more { gap: 8px; }
-.sv-more .btn { flex: 1 1 130px; }
+.sv-more .btn { flex: 1 1 auto; white-space: nowrap; }
 /* đặt tính trên giấy ô li: mỗi chữ số một ô; chữ số vừa tính ra hiện màu mực xanh */
 .sv-colwrap { display: flex; justify-content: center; overflow-x: auto; padding: 2px 0; }
 .dt { --n: 6; --c: clamp(18px, calc((min(100vw, 600px) - 108px) / var(--n)), 34px); display: inline-flex; padding: 8px 12px; border-radius: 12px; border: 1.5px solid var(--grid-2); background-color: #FFFFFF; color: #1E2128;
