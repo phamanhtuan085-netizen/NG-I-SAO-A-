@@ -1,0 +1,13 @@
+{
+ "note": "Khu vực chủ app: khóa ký mã đã mã hóa bằng mật khẩu chủ app (không có mật khẩu thì không giải được). Tạo bằng web-src/tools-owner.js.",
+ "serials": [
+  2005780367
+ ],
+ "blob": {
+  "v": 1,
+  "n": 250000,
+  "s": "5kf8wuSGRJap44mSamlzAQ",
+  "i": "6gPPrHke28xDYRmy",
+  "c": "5ckkkhGUiSG-0-a-yKNo3aykYJbN9pozci2uGhgQO6LhfHMt8OpnZilB3dmjal4vYyQnrM-Hgd9nXPbD6UXzJQNvcQ"
+ }
+}

@@ -111,6 +111,13 @@ Kiểm thử: iOS dùng tài khoản Sandbox / TestFlight; Android thêm Gmail v
 khóa bí mật nằm trong công cụ `BAO-MAT/TAO-MA-KICH-HOAT-PREMIUM.html` (chạy ngoại tuyến, có sổ mã đã bán, xuất CSV).
 Lộ khóa bí mật → tạo cặp khóa mới, thay `PUB` trong `55-premium.js` và khóa trong công cụ, dựng lại (mã cũ hết hiệu lực).
 
+**Khu vực chủ app (tạo mã ngay trên điện thoại):** `web-src/src/57-owner.js`, `69-ui-owner.js`. Chỉ hiện ở Góc phụ huynh → Cài đặt
+trên máy đã kích hoạt bằng mã chủ app (sê-ri trong `owner-config.json`). Đăng nhập bằng mật khẩu chủ app (16 ký tự ngẫu nhiên,
+`BAO-MAT/MAT-KHAU-CHU-APP.txt`) để giải khóa ký đã mã hóa (PBKDF2-SHA256 250.000 vòng + AES-256-GCM) — khóa chỉ nằm trong bộ nhớ đến khi
+đăng xuất. Tạo mã dùng thử / Tuần / Tháng / Năm (giống hệt công cụ BAO-MAT), gửi khách qua bảng chia sẻ (Zalo…), sổ mã lưu riêng trên máy.
+`owner-config.json` do `node web-src/tools-owner.js` tạo từ thư mục BAO-MAT (công khai được: không có mật khẩu thì không giải được);
+`--mat-khau-moi` đổi mật khẩu. Kiểm thử: `python3 web-src/test/owner_test.py`.
+
 Kiểm thử: `node web-src/test/premium.test.js` (mã kích hoạt, phạm vi miễn phí, giả lập StoreKit / Play Billing) và
 `python3 web-src/test/premium_test.py` (giao diện: bản miễn phí, cổng phụ huynh, nhập mã, link kích hoạt, mua trên iOS/Android giả lập).
 Quyền lợi được kiểm tra ngay trên máy (giao dịch StoreKit 2 đã xác minh / Play Billing); muốn chống gian lận chặt hơn có thể thêm máy chủ xác minh hóa đơn sau.
@@ -120,6 +127,12 @@ Quyền lợi được kiểm tra ngay trên máy (giao dịch StoreKit 2 đã x
 Mặc định `www/ai-config.js` để trống → bản cài đặt không có Gia sư AI, không gửi dữ liệu đi đâu. Muốn bật: dựng máy chủ theo
 `ai-proxy/README.md`, sau đó thêm Secrets `HVNS_AI_ENDPOINT`, `HVNS_AI_APP_KEY` (CI tự ghi cấu hình) hoặc sửa trực tiếp `www/ai-config.js`.
 Trong ứng dụng, phụ huynh phải bật ở **Góc phụ huynh → Cài đặt**. Nhớ cập nhật khai báo quyền riêng tư trên hai cửa hàng.
+
+**Hỏi bài** (`69-ui-ask.js`): con chụp ảnh đề bài (thu nhỏ còn cạnh dài 1600 px, JPEG) hoặc gõ đề. Khi có Gia sư AI: gửi
+`task: 'homework'` kèm ảnh tới máy chủ (`ai-proxy/worker.js` nhận ảnh ≤ ~1,2 MB, không lưu) → hướng dẫn theo mục Đề bài / Gợi ý / Các bước
+làm / Đáp án (giấu đến khi con bấm xem) / Mẹo nhớ; ở bản có Premium, gia sư AI hướng dẫn bài tập thuộc gói Premium. Luôn có nút
+**Gửi thầy cô / bố mẹ** (chia sẻ ảnh + câu hỏi qua Zalo, Messenger… bằng plugin Share / Web Share). Ảnh không lưu vào máy.
+Kiểm thử: `python3 web-src/test/ask_test.py`.
 
 ## Lưu ý
 
