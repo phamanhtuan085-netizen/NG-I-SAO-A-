@@ -10273,8 +10273,10 @@ lecture|The professor gave a lecture on history.|Giáo sư đã giảng một b�
   UI.starMark = cls => '<span class="star-mark' + (cls ? ' ' + cls : '') + '" aria-hidden="true"><svg viewBox="0 0 100 100"><g transform="rotate(-9 50 54)">' +
     '<path d="M50 14L62.9 36.2L88 41.6L70.9 60.8L73.5 86.4L50 76L26.5 86.4L29.1 60.8L12 41.6L37.1 36.2Z" fill="#E31E2B" stroke="#E31E2B" stroke-width="13" stroke-linejoin="round"/>' +
     '<circle cx="40.5" cy="50" r="4.6" fill="#fff"/><circle cx="59.5" cy="50" r="4.6" fill="#fff"/><path d="M38.5 60q11.5 10 23 0" stroke="#fff" stroke-width="5.4" fill="none" stroke-linecap="round"/></g></svg></span>';
+  // biểu tượng phép tính (+ − × ÷) trong ô vuông xanh của môn Toán, như mẫu
+  const OPS = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M7 3.6v6.2M3.9 6.7h6.2M14 6.7h6.2M4.6 14.4l4.8 4.8M9.4 14.4l-4.8 4.8M14 16.8h6.2"/><circle cx="17.1" cy="13.7" r="1.25" fill="#fff" stroke="none"/><circle cx="17.1" cy="19.9" r="1.25" fill="#fff" stroke="none"/></svg>';
   const SUBJ_X = {
-    math: { sub: 'Học theo từng cấp học', badge: () => '<span class="hx-badge math" aria-hidden="true"><span>' + I('calculator') + '</span></span>' },
+    math: { sub: 'Học theo từng cấp học', badge: () => '<span class="hx-badge math" aria-hidden="true"><span>' + OPS + '</span></span>' },
     eng: { sub: 'Tự tin khám phá ngôn ngữ', badge: () => '<span class="hx-badge eng" aria-hidden="true"><span><b>Aa</b></span></span>' },
     logic: { sub: 'Rèn quan sát và suy luận', badge: () => '<span class="hx-badge logic" aria-hidden="true"><span>' + I('brain') + '</span></span>' }
   };
@@ -10284,26 +10286,39 @@ lecture|The professor gave a lecture on history.|Giáo sư đã giảng một b�
   // tranh nền đầu trang (ngôi sao ôm sách giữa mây hồng) + lời chào
   UI.hxHero = (top, small) => '<section class="hx-hero' + (small ? ' sm' : '') + '">' + (top || '') +
     '<div class="hx-copy"><h1 class="hx-h1"><span>Mỗi ngày học</span><span class="r">một điều hay</span></h1>' +
-    (small ? '' : '<p class="hx-sub"><span>Cùng con khám phá,</span> <span>từng bước lớn khôn</span></p>') + '</div></section>';
+    (small ? '' : '<p class="hx-sub">Cùng con khám phá, từng bước lớn khôn</p>') + '</div></section>';
   const hxParent = () => '<button class="hx-parent" data-a="openParent">' + I('shield-check') + '<span class="grow">Góc phụ huynh</span>' + I('chevron-right') + '</button>';
-  const footNote = () => '<p class="foot-note">' + (ST.cloud.db || (window.claude && window.claude.use) ? 'Dữ liệu học tập được lưu riêng cho tài khoản của bạn.' : 'Dữ liệu học tập được lưu riêng trên thiết bị này — không quảng cáo, không thu thập thông tin.') + '</p>';
-  V.welcome = () => {
-    const sync = ST.syncInfo();
-    const card = (s, chips) => '<div class="hx-card ' + s + '"><button class="hx-main" data-a="hxSubj" data-s="' + s + '"><span class="hx-art" aria-hidden="true"></span>' +
+  // ba môn học đúng bố cục mẫu: khối Toán nền xanh có 3 nút cấp học; hàng Tiếng Anh, Tư duy ngăn bằng đường kẻ mảnh
+  const hxSubjects = () => {
+    const row = (s, chips) => '<div class="hx-card ' + s + '"><button class="hx-main" data-a="hxSubj" data-s="' + s + '"><span class="hx-art" aria-hidden="true"></span>' +
       '<span class="hx-info">' + UI.subjBadge(s) + '<span class="hx-t"><b>' + ST.SUBJ[s].name + '</b><small>' + SUBJ_X[s].sub + '</small></span>' + I('chevron-right') + '</span></button>' + (chips || '') + '</div>';
     const chips = '<div class="hx-chips">' + [['Mầm non', 0], ['Tiểu học', 1], ['THCS', 6]].map(c => '<button class="hx-chip" data-a="hxSubj" data-s="math" data-g="' + c[1] + '">' + c[0] + '</button>').join('') + '</div>';
-    return '<div class="hx">' + UI.hxHero(hxTop()) + '<div class="wrap hx-body">' +
-      '<button class="hx-cta" data-a="newKid"><span class="hx-plus" aria-hidden="true">' + I('plus') + '</span><span class="grow">Tạo hồ sơ cho bé</span>' + I('chevron-right') + '</button>' +
-      '<button class="hx-demo" data-a="demoKid">' + I('eye') + 'Xem thử hồ sơ mẫu</button>' +
-      (sync.mode === 'pending' ? '<p class="sync">' + I('cloud') + ' ' + esc(sync.label) + '</p>' : '') +
-      '<h2 class="hx-h2">Khám phá môn học</h2><div class="hx-cards">' + card('math', chips) + card('eng') + card('logic') + '</div>' +
-      hxParent() + footNote() + '</div></div>';
+    return '<h2 class="hx-h2">Khám phá môn học</h2><div class="hx-cards">' + row('math', chips) + row('eng') + row('logic') + '</div>';
   };
-  // chạm một môn ở trang chủ khi chưa có hồ sơ: tạo hồ sơ (chọn sẵn cấp học nếu chạm Mầm non / Tiểu học / THCS) rồi vào thẳng môn đó
+  // bé học gần đây nhất trên máy: trang chủ mời "Học tiếp cùng bé"
+  const lastDay = k => Object.keys(k.days || {}).sort().pop() || '';
+  UI.landingKid = () => { let best = null; ST.kidList().forEach(k => { if (!best || lastDay(k) > lastDay(best)) best = k; }); return best; };
+  V.welcome = () => {
+    const sync = ST.syncInfo();
+    return '<div class="hx">' + UI.hxHero(hxTop()) + '<div class="wrap hx-body">' +
+      '<button class="hx-cta" data-a="newKid"><span class="hx-plus" aria-hidden="true">' + I('plus') + '</span><span class="hx-cta-t">Tạo hồ sơ cho bé</span>' + I('chevron-right') + '</button>' +
+      (sync.mode === 'pending' ? '<p class="sync">' + I('cloud') + ' ' + esc(sync.label) + '</p>' : '') +
+      hxSubjects() + hxParent() + '</div></div>';
+  };
+  // chạm một môn ở trang chủ: đã có hồ sơ → vào thẳng môn đó của bé (Mầm non / Tiểu học / THCS chọn đúng cấp);
+  // chưa có hồ sơ → tạo hồ sơ (chọn sẵn cấp học) rồi vào môn đó
   A.hxSubj = d => {
+    const k = UI.landingKid(), g = d.g != null && d.g !== '' ? +d.g : null;
+    if (k) {
+      let vk = HV.viewKeyFor(k, d.s);
+      if (d.s === 'math' && g != null) vk = g === 0 ? 0 : g === 1 ? (k.grade >= 1 && k.grade <= 5 ? k.grade : 1) : (k.grade >= 6 ? k.grade : 6);
+      UI.S.kidId = k.id;
+      UI.go('subject', { subj: d.s, vk: vk, theme: '' });
+      return;
+    }
     A.newKid();
     const f = UI.S.form;
-    if (d.g != null && d.g !== '') { f.grade = +d.g; f.eng = EN.levelForGrade(f.grade); }
+    if (g != null) { f.grade = g; f.eng = EN.levelForGrade(f.grade); }
     if (ST.SUBJ[d.s]) f.then = d.s;
     UI.render();
   };
@@ -10374,11 +10389,12 @@ lecture|The professor gave a lecture on history.|Giáo sư đã giảng một b�
   V.picker = () => {
     const kids = ST.kidList();
     if (!kids.length) return V.welcome();
-    return '<div class="hx">' + UI.hxHero(hxTop()) +
-      '<div class="wrap hx-body"><h2 class="hx-h2">Ai đang học hôm nay?</h2><div class="kid-grid">' +
-      kids.map(k => { const lv = ST.level(k.xp); const st = ST.streakNow(k); return '<button class="kid-card" data-a="pickKid" data-id="' + k.id + '"><span class="av">' + UI.av(k) + '</span><b>' + esc(k.name) + '</b><span class="meta">' + ST.gradeLabel(k.grade) + ' · Cấp ' + lv.lv + '</span><span class="row" style="gap:6px"><span class="pill star">' + I('star') + U.fmt(k.stars) + '</span><span class="pill fire light' + (st ? ' on' : '') + '">' + I('flame') + st + '</span></span>' + (k.demo ? '<span class="demo-tag">Hồ sơ mẫu</span>' : '') + '</button>'; }).join('') +
-      '<button class="kid-card add" data-a="newKid">' + I('user-plus', 'ic') + '<b>Thêm bé</b><span class="meta">Tạo hồ sơ mới</span></button></div>' +
-      hxParent() + '</div></div>';
+    const k = UI.landingKid(), others = kids.filter(x => x !== k);
+    return '<div class="hx">' + UI.hxHero(hxTop()) + '<div class="wrap hx-body">' +
+      '<button class="hx-cta" data-a="pickKid" data-id="' + k.id + '"><span class="hx-plus av" aria-hidden="true">' + UI.avIn(k) + '</span><span class="hx-cta-t">Học tiếp cùng ' + esc(k.name) + '</span>' + I('chevron-right') + '</button>' +
+      '<div class="hx-kids">' + others.map(x => '<button class="hx-kid" data-a="pickKid" data-id="' + x.id + '"><span class="av" aria-hidden="true">' + UI.avIn(x) + '</span>' + esc(x.name) + '</button>').join('') +
+      '<button class="hx-kid add" data-a="newKid">' + I('user-plus') + 'Thêm bé</button></div>' +
+      hxSubjects() + hxParent() + '</div></div>';
   };
   A.pickKid = d => { UI.go('home', { kidId: d.id }); };
 
