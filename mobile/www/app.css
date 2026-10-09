@@ -1712,6 +1712,23 @@ body.art .hero .brand-name .ap { color: var(--brand); }
 .pw-buy > b .ic { width: 18px; height: 18px; color: var(--star); }
 .pw-buy ol { margin: 8px 0 0; padding-left: 20px; display: grid; gap: 4px; color: var(--ink-2); }
 .pw-buy .muted { margin-top: 8px; font-size: .82rem; }
+/* chuyển khoản: mã QR VietQR + thông tin tài khoản */
+.pw-bank { background: var(--paper); border-radius: 16px; padding: 12px 14px; font-size: .9rem; display: grid; gap: 10px; }
+.pw-bank-h { display: flex; align-items: center; gap: 8px; }
+.pw-bank-h .ic { width: 18px; height: 18px; color: var(--star); }
+.pw-phone { display: grid; gap: 4px; font-size: .82rem; font-weight: 600; color: var(--ink-2); }
+.pw-phone .input { font-size: 1rem; letter-spacing: .02em; }
+.pw-bank-row { display: grid; gap: 10px; justify-items: center; }
+.pw-qr { width: 188px; aspect-ratio: 1; border-radius: 14px; background: #fff; border: 1px solid var(--line); overflow: hidden; display: grid; place-items: center; }
+.pw-qr svg { width: 100%; height: 100%; display: block; }
+.pw-qr-wait { display: grid; justify-items: center; gap: 6px; padding: 10px; text-align: center; font-size: .78rem; line-height: 1.35; color: #5C606C; }
+.pw-qr-wait .ic { width: 26px; height: 26px; color: var(--star); }
+.pw-bank-dl { margin: 0; justify-self: stretch; display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: .86rem; align-items: baseline; background: var(--sheet); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+.pw-bank-dl dt { color: var(--ink-3); }
+.pw-bank-dl dd { margin: 0; color: var(--ink); overflow-wrap: anywhere; }
+.pw-bank-dl .linkbtn { display: inline-flex; align-items: center; gap: 3px; padding: 0 2px; font-size: .8rem; }
+.pw-bank-dl .linkbtn .ic { width: 13px; height: 13px; }
+.pw-bank ol { margin: 0; padding-left: 20px; display: grid; gap: 4px; color: var(--ink-2); font-size: .84rem; }
 .pw-close { margin-top: -4px; }
 .pw-code-step { display: flex; flex-direction: column; gap: 10px; }
 .pw-code-step h2 { display: flex; align-items: center; gap: 8px; }

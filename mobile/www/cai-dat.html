@@ -254,8 +254,9 @@ footer a { color: var(--ink-2); text-underline-offset: 3px; }
   var readCookie = function () { var m = /(?:^|;\s*)nsa_kh=([A-Za-z0-9._-]+)/.exec(document.cookie || ''); return m ? m[1] : ''; };
   var setCookie = function (c) { document.cookie = 'nsa_kh=' + c + '; path=' + dir + '; max-age=' + 7 * 86400 + '; SameSite=Lax' + (location.protocol === 'https:' ? '; Secure' : ''); };
   var grab = function (s) { var m = /[#?&]kh=([A-Za-z0-9._\-\s%]+)/.exec(s || ''); if (!m) return ''; var t = m[1]; try { t = decodeURIComponent(t); } catch (e) { /* giữ nguyên */ } t = t.replace(/\s+/g, ''); var x = /NSA1\.[A-Za-z0-9_-]{11}\.[A-Za-z0-9_-]{86}/.exec(t); return x ? x[0] : t; };
+  var notInstalled = /[?&]chua-cai=1/.test(location.search);
   var fromUrl = grab(location.hash) || grab(location.search);
-  if (fromUrl) { try { history.replaceState(null, '', location.pathname); } catch (e) { /* bỏ qua */ } }
+  if (fromUrl || notInstalled) { try { history.replaceState(null, '', location.pathname); } catch (e) { /* bỏ qua */ } }
   var code = fromUrl || readCookie();
 
   var b64uDec = function (s) { s = String(s).replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; var b = atob(s), u = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; };
@@ -301,7 +302,7 @@ footer a { color: var(--ink-2); text-underline-offset: 3px; }
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done, fallback); else fallback();
   };
 
-  var codeOk = false;
+  var codeOk = false, codeTrial = false;
   var showCode = function (r) {
     var el = $('code');
     if (!code) { el.hidden = true; return; }
@@ -322,7 +323,7 @@ footer a { color: var(--ink-2); text-underline-offset: 3px; }
       el.innerHTML = '<span class="ic">' + I.alert + '</span><div><b>Link dùng thử đã hết hạn nhận</b><p>Link này nhận được đến hết ngày ' + dateVi(c.until) + '. Vẫn cài app được và học phần miễn phí.</p></div>';
       return;
     }
-    codeOk = true;
+    codeOk = true; codeTrial = !!c.trial;
     setCookie(code);
     var extra = '<button class="copy" type="button" id="copy-code">Chép mã kích hoạt</button>';
     if (c.trial) {
@@ -338,13 +339,6 @@ footer a { color: var(--ink-2); text-underline-offset: 3px; }
 
   // ---------- hướng dẫn theo loại máy ----------
   var openWebBtn = '<a class="btn line" href="./">' + I.play + 'Mở app trên trình duyệt</a>';
-  var afterApk = function () { return codeOk ? '<p class="muted" style="margin:10px 0 0">Cài APK xong: mở app → <b>Góc phụ huynh → Gói Premium → Nhập mã kích hoạt</b> → dán mã (đã chép sẵn khi bấm tải).</p>' : ''; };
-  var apkBlock = function () {
-    // iPhone, iPad không mở được tệp APK: không đưa nút tải để khỏi tải nhầm
-    if (ios) return '<div class="alt"><h3>Tệp cài đặt APK</h3><p>Tệp APK chỉ dành cho điện thoại Android. Trên iPhone, iPad, cài theo hướng dẫn ở mục <b>iPhone, iPad</b>.</p></div>';
-    return '<div class="alt"><h3>Cách khác: tải tệp cài đặt APK</h3><p>Bản cài đặt Android đầy đủ, khoảng 29 MB, chỉ dùng cho máy Android. Máy có thể hỏi cho phép cài ứng dụng không rõ nguồn: bấm <b>Cài đặt</b> → <b>Cho phép</b>.</p>' +
-      '<a class="btn line" id="apk" href="' + APK + '">' + I.down + 'Tải tệp APK (Android)</a>' + afterApk() + '</div>';
-  };
   var views = {
     ios: function () {
       var where = ipad ? 'ở góc trên bên phải' : 'ở thanh dưới cùng';
@@ -360,20 +354,30 @@ footer a { color: var(--ink-2); text-underline-offset: 3px; }
         '<div class="stack">' + openWebBtn + '</div>';
     },
     android: function () {
+      // iPhone, iPad xem mục Android: không đưa nút tải tệp cài Android để khỏi tải nhầm
+      if (ios) return '<div class="note">Tệp cài app này chỉ dành cho điện thoại Android, iPhone, iPad không mở được. Trên iPhone, iPad, cài theo mục <b>iPhone, iPad</b>; muốn cài cho máy Android, mở link này trên máy Android đó.</div>';
       var top = '';
-      if (installed) top = '<p class="done">Đã cài xong. Mở Ngôi Sao A+ từ biểu tượng ngôi sao trên màn hình chính.</p>';
-      else if (inApp) {
+      if (inApp) {
         var intent = 'intent://' + location.host + location.pathname + (codeOk ? '?kh=' + code : '') + '#Intent;scheme=https;package=com.android.chrome;end';
-        top = '<div class="note">Bạn đang mở link trong <b>' + inApp + '</b>, chỗ này không cài app được. Mở bằng Chrome để cài:' +
+        top = '<div class="note">Bạn đang mở link trong <b>' + inApp + '</b>, chỗ này không tải app được. Mở bằng Chrome để cài:' +
           '<div class="stack"><a class="btn" href="' + intent + '">' + I.ext + 'Mở bằng Chrome</a></div><p style="margin:8px 0 0">Không mở được: bấm ' + g('dots') + ' ở góc trên, chọn <b>Mở bằng trình duyệt</b>.</p></div>';
       }
-      var steps = deferred && !installed
-        ? '<div class="stack"><button class="btn" type="button" id="install">' + I.down + 'Cài app Ngôi Sao A+</button></div><p class="muted" style="margin:10px 0 0">Bấm nút trên, rồi bấm <b>Cài đặt</b> trong hộp hỏi của máy. Biểu tượng ngôi sao hiện trên màn hình chính.</p>'
-        : installed ? '' : '<ol class="steps">' +
-          '<li><span>Mở link này bằng <b>Chrome</b>, bấm ' + g('dots') + ' ở góc trên bên phải.</span></li>' +
-          '<li><span>Chọn <b>Cài đặt ứng dụng</b> (hoặc <b>Thêm vào màn hình chính</b>).</span></li>' +
-          '<li><span>Bấm <b>Cài đặt</b>. Biểu tượng <b>Ngôi Sao A+</b> hiện trên màn hình chính.</span></li></ol>';
-      return top + steps + apkBlock() + '<div class="stack">' + openWebBtn + '</div>';
+      if (notInstalled) top += '<div class="note">Máy chưa có app Ngôi Sao A+. Làm bước 1 và 2 để cài app trước, rồi bấm <b>' + (codeOk ? 'Mở app và mở khóa' : 'Mở app') + '</b>.</div>';
+      // mở thẳng app vừa cài (scheme ngoisaoaplus trong AndroidManifest); chưa có app thì quay lại trang này kèm ?chua-cai=1
+      var openApp = 'intent://kich-hoat' + (codeOk ? '?kh=' + code : '') + '#Intent;scheme=ngoisaoaplus;package=vn.hocviengoisao.app;S.browser_fallback_url=' +
+        encodeURIComponent(location.origin + location.pathname + '?chua-cai=1') + ';end';
+      var openLabel = codeOk ? 'Mở app và mở khóa' : 'Mở app';
+      var apk = '<ol class="steps">' +
+        '<li><span>Bấm <b>Tải app Ngôi Sao A+</b> bên dưới (tệp cài đặt Android, khoảng 29 MB).</span></li>' +
+        '<li><span>Mở tệp vừa tải, bấm <b>Cài đặt</b>. Máy hỏi cho phép cài ứng dụng không rõ nguồn: bấm <b>Cài đặt</b> → <b>Cho phép</b>, rồi bấm <b>Cài đặt</b> lại.</span></li>' +
+        '<li><span>Cài xong, quay lại trang này, bấm <b>' + openLabel + '</b>.' + (codeOk ? ' App mở ra là đã có ' + (codeTrial ? 'dùng thử trọn bộ' : 'trọn bộ Premium') + ', không phải nhập mã.' : '') + '</span></li></ol>' +
+        '<div class="stack"><a class="btn" id="apk" href="' + APK + '">' + I.down + 'Tải app Ngôi Sao A+</a>' +
+        '<a class="btn line" id="open-app" href="' + openApp + '">' + I.play + openLabel + '</a></div>';
+      var pwa = installed ? '<p class="done" style="margin-top:12px">Đã cài xong. Mở Ngôi Sao A+ từ biểu tượng ngôi sao trên màn hình chính.</p>'
+        : deferred ? '<div class="stack"><button class="btn line" type="button" id="install">' + I.inst + 'Cài nhanh qua Chrome</button></div>'
+        : '<p style="margin:0">Mở link này bằng <b>Chrome</b>, bấm ' + g('dots') + ' → <b>Cài đặt ứng dụng</b> (hoặc <b>Thêm vào màn hình chính</b>) → <b>Cài đặt</b>.</p>';
+      return top + apk + '<div class="alt"><h3>Máy không cho cài tệp tải về?</h3><p>Cài nhanh qua Chrome, không cần tải tệp; biểu tượng ngôi sao vẫn nằm trên màn hình chính.</p>' + pwa + '</div>' +
+        '<div class="stack">' + openWebBtn + '</div>';
     },
     desktop: function () {
       if (installed) return '<p class="done">Đã cài xong. Mở Ngôi Sao A+ từ biểu tượng trên màn hình hoặc thanh tác vụ.</p><div class="stack">' + openWebBtn + '</div>';

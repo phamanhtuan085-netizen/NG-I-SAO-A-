@@ -86,24 +86,26 @@ Mã nguồn: `web-src/src/55-premium.js` (quyền lợi, phạm vi miễn phí, 
 | App Store Connect | 3 gói đăng ký tự gia hạn trong một nhóm “Ngôi Sao A+ Premium”: `vn.hocviengoisao.premium.year` (1 năm), `vn.hocviengoisao.premium.month` (1 tháng), `vn.hocviengoisao.premium.week` (1 tuần) | Ưu đãi giới thiệu “Dùng thử miễn phí 7 ngày” cho gói năm. Bật Family Sharing nếu muốn cả gia đình dùng chung |
 | Google Play Console | 1 gói thuê bao `vn.hocviengoisao.premium` với 3 gói cơ sở: `year` (P1Y), `month` (P1M), `week` (P1W), tự gia hạn | Ưu đãi dùng thử 7 ngày trên gói cơ sở `year` (mã ưu đãi gợi ý `dung-thu-7-ngay`, đối tượng: khách hàng mới) |
 
-Giá đề xuất: năm 599.000đ, tháng 99.000đ, tuần 29.000đ (giá thật đặt trên cửa hàng; ứng dụng luôn hiển thị giá lấy từ cửa hàng).
+Giá đề xuất: năm 599.000đ, tháng 250.000đ, tuần 150.000đ (giá thật đặt trên cửa hàng; ứng dụng luôn hiển thị giá lấy từ cửa hàng).
 Kiểm thử: iOS dùng tài khoản Sandbox / TestFlight; Android thêm Gmail vào **License testing** và tải bản từ kênh **Internal testing**.
 
 **Cấu hình bản dựng** — tệp tùy chọn `store-config.json` ở thư mục dự án (build-app.js đọc và ghi ra `www/store-config.js`):
 
 ```json
 { "premium": true,
-  "prices": { "year": 599000, "month": 99000, "week": 29000 },
+  "prices": { "year": 599000, "month": 250000, "week": 150000 },
+  "bank": { "bankName": "BIDV", "bin": "970418", "account": "2890889999", "name": "PHAM ANH TUAN" },
   "contact": { "name": "Tên người bán", "zalo": "09xx xxx xxx", "phone": "", "note": "Ghi chú hiện trong màn mua mã" },
   "links": { "terms": "https://…/dieu-khoan-su-dung.html", "privacy": "https://…/chinh-sach-quyen-rieng-tu.html", "buy": "https://…/#bang-gia" } }
 ```
 
-`prices` và `contact` chỉ hiện ở bản web / APK (bán bằng mã kích hoạt). `"premium": false` tắt hẳn Premium (mở toàn bộ).
+`prices`, `bank` và `contact` chỉ hiện ở bản web / APK / app cài từ link (bán bằng mã kích hoạt). Có `bank` (mã BIN ngân hàng theo NAPAS, số tài khoản, tên chủ tài khoản) thì màn mua gói hiện mã QR VietQR đúng số tiền, nội dung `NSA <GÓI> <SĐT khách>`. `"premium": false` tắt hẳn Premium (mở toàn bộ).
 
 **Ba kênh phát hành:**
 - AAB nộp Google Play và bản iOS: `channel = "store"` → mua trong ứng dụng, có nút Khôi phục giao dịch và Quản lý gói, không có ô nhập mã (đúng quy định cửa hàng).
 - APK tải từ trang giới thiệu: quy trình `android.yml` đổi `www/store-config.js` thành `"channel":"apk"` trước khi đóng gói APK → dùng mã kích hoạt.
-- Bản web (link cài): luôn dùng mã kích hoạt. Mã mở được bằng link `…/app/#kh=<mã>` hoặc dán vào Góc phụ huynh → Cài đặt → Gói Premium.
+- Bản web (link cài): luôn dùng mã kích hoạt. Mã mở được bằng link `…/app/cai-dat.html#kh=<mã>` (trang cài app), `…/app/#kh=<mã>`, hoặc dán vào Góc phụ huynh → Cài đặt → Gói Premium.
+- APK mở được bằng link `ngoisaoaplus://kich-hoat?kh=<mã>` (khai báo trong `AndroidManifest.xml`): trang cài app có nút "Mở app và mở khóa" sau khi cài tệp APK.
 
 **Mã kích hoạt:** dạng `NSA1.<dữ liệu>.<chữ ký>` (ECDSA P-256). Ứng dụng chỉ chứa khóa công khai (`PUB` trong `55-premium.js`),
 khóa bí mật nằm trong công cụ `BAO-MAT/TAO-MA-KICH-HOAT-PREMIUM.html` (chạy ngoại tuyến, có sổ mã đã bán, xuất CSV).
