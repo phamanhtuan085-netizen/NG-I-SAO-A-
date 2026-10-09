@@ -1,1 +1,1 @@
-{"fmt": "opus", "kbps": 24, "voices": {"a": "af_heart", "b": "af_bella"}, "model": "Kokoro-82M v1.0", "ext": "ogg"}
+{"fmt": "opus", "ext": "ogg", "kbps": 24, "voices": {"a": "af_heart", "b": "af_bella"}, "model": "Kokoro-82M v1.0"}
