@@ -2300,7 +2300,7 @@
         const S2 = ls[0] + ls[1], p2 = zig(2);
         return num(ls[1], { q: 'Đường gấp khúc ABC dài ' + S2 + ' cm, trong đó đoạn thẳng AB dài ' + ls[0] + ' cm. Đoạn thẳng BC dài bao nhiêu xăng-ti-mét?', qEn: 'The broken line ABC is ' + S2 + ' cm long, and line segment AB is ' + ls[0] + ' cm long. How many centimetres long is line segment BC?', unit: 'cm', vis: svg(300, 130, 'Đường gấp khúc ABC', '<polyline class="fig-line" fill="none" points="' + p2.map(p => p.join(',')).join(' ') + '"/>' + p2.map((p, i) => dot(p[0], p[1]) + lab(p[0], p[1] + (i % 2 ? -10 : 20), LET[i])).join('') + lab((p2[0][0] + p2[1][0]) / 2 - 14, (p2[0][1] + p2[1][1]) / 2, ls[0] + ' cm', 'end') + lab((p2[1][0] + p2[2][0]) / 2 + 14, (p2[1][1] + p2[2][1]) / 2, '? cm', 'start')), ex: steps(['Độ dài đường gấp khúc = AB + BC.', 'BC = ' + S2 + ' − ' + ls[0] + ' = ' + ans(ls[1] + ' cm') + '.']) });
       }
-      const vis = svg(300, 130, 'Đường gấp khúc ' + name, '<polyline class="fig-line" fill="none" points="' + pts.map(p => p.join(',')).join(' ') + '"/>' + pts.map((p, i) => dot(p[0], p[1]) + lab(p[0], p[1] + (i % 2 ? -10 : 20), LET[i])).join('') + ls.map((x, i) => lab((pts[i][0] + pts[i + 1][0]) / 2 + (i % 2 ? 16 : -16), (pts[i][1] + pts[i + 1][1]) / 2, x + ' cm', i % 2 ? 'start' : 'end')).join(''));
+      const vis = svg(300, 130, 'Đường gấp khúc ' + name, '<polyline class="fig-line" fill="none" points="' + pts.map(p => p.join(',')).join(' ') + '"/>' + pts.map((p, i) => dot(p[0], p[1]) + lab(p[0], p[1] + (i % 2 ? -10 : 20), LET[i])).join('') + ls.map((x, i) => lab((pts[i][0] + pts[i + 1][0]) / 2 - 16, (pts[i][1] + pts[i + 1][1]) / 2, x + ' cm', 'end')).join(''));
       return num(S, { q: eq ? 'Đường gấp khúc ' + name + ' gồm ' + k + ' đoạn thẳng, mỗi đoạn dài ' + d + ' cm. Tính độ dài đường gấp khúc.' : 'Tính độ dài đường gấp khúc ' + name + '.', qEn: eq ? 'The broken line ' + name + ' is made of ' + k + ' line segments. Each segment is ' + d + ' cm long. Find the length of the broken line.' : 'Find the length of the broken line ' + name + '.', unit: 'cm', vis: vis, hint: 'Độ dài đường gấp khúc bằng tổng độ dài các đoạn thẳng của nó.', ex: steps(['Độ dài đường gấp khúc = tổng độ dài các đoạn thẳng.', ls.join(' + ') + ' = ' + ans(S + ' cm') + (eq ? ' (hay ' + d + ' × ' + k + ' = ' + S + ')' : '') + '.']) });
     }
     const t = pick(['quad', 'solid', 'line']);
@@ -2318,7 +2318,9 @@
     // ba điểm thẳng hàng
     const base = [[34, 118], [266, 26]], tt = shuffle([0, 0.42, 1]), off = [int(90, 210), 0];
     const P = tt.map(v => [base[0][0] + (base[1][0] - base[0][0]) * v, base[0][1] + (base[1][1] - base[0][1]) * v]);
-    const ox = off[0], oy = base[0][1] + (base[1][1] - base[0][1]) * (ox - 34) / 232 + (chance(0.5) ? -38 : 38);
+    // điểm nằm ngoài đường thẳng: lệch 38 lên trên hoặc xuống dưới, nhưng luôn chừa chỗ cho nhãn trong khung hình
+    const ox = off[0], ly = base[0][1] + (base[1][1] - base[0][1]) * (ox - 34) / 232;
+    const oy = ly - 38 >= 24 && (ly + 38 > 128 || chance(0.5)) ? ly - 38 : ly + 38;
     const pts = shuffle(P.map(p => ({ p: p, on: true })).concat([{ p: [ox, oy], on: false }]));
     const names = ['A', 'B', 'C', 'D'], onN = pts.map((x, i) => (x.on ? names[i] : null)).filter(Boolean).join(', ');
     const triples = [['A', 'B', 'C'], ['A', 'B', 'D'], ['A', 'C', 'D'], ['B', 'C', 'D']].map(x => x.join(', '));
@@ -2428,7 +2430,7 @@
 
   // ======================= LỚP 4 =======================
   const rectABCD = (diag) => svg(220, 130, 'Hình chữ nhật ABCD', '<rect class="fig-shape" x="40" y="20" width="140" height="80"/>' + (diag ? seg(40, 20, 180, 100, 'fig-dash') : '') + lab(32, 16, 'A', 'end') + lab(188, 16, 'B', 'start') + lab(188, 112, 'C', 'start') + lab(32, 112, 'D', 'end') + '<path class="fig-mark" d="M40,32 H52 V20"/>');
-  const paraFig = (rhombus, la, lb) => svg(240, 130, rhombus ? 'Hình thoi ABCD' : 'Hình bình hành ABCD', rhombus ? '<polygon class="fig-shape" points="120,12 196,62 120,112 44,62"/>' + lab(120, 8, 'A') + lab(204, 66, 'B', 'start') + lab(120, 126, 'C') + lab(36, 66, 'D', 'end') + (la ? lab(170, 30, la, 'start') : '') : '<polygon class="fig-shape" points="70,20 210,20 170,100 30,100"/>' + lab(64, 16, 'A', 'end') + lab(216, 16, 'B', 'start') + lab(176, 114, 'C', 'start') + lab(24, 114, 'D', 'end') + (la ? lab(140, 14, la) : '') + (lb ? lab(198, 64, lb, 'start') : ''));
+  const paraFig = (rhombus, la, lb) => svg(240, rhombus ? 136 : 130, rhombus ? 'Hình thoi ABCD' : 'Hình bình hành ABCD', rhombus ? '<g transform="translate(0 6)"><polygon class="fig-shape" points="120,12 196,62 120,112 44,62"/>' + lab(120, 8, 'A') + lab(204, 66, 'B', 'start') + lab(120, 126, 'C') + lab(36, 66, 'D', 'end') + (la ? lab(170, 30, la, 'start') : '') + '</g>' : '<polygon class="fig-shape" points="70,20 210,20 170,100 30,100"/>' + lab(64, 16, 'A', 'end') + lab(216, 16, 'B', 'start') + lab(176, 114, 'C', 'start') + lab(24, 114, 'D', 'end') + (la ? lab(140, 14, la) : '') + (lb ? lab(198, 64, lb, 'start') : ''));
   T(4, 'g4.lines', 'Song song, vuông góc; hình bình hành, hình thoi', 'Hai đường thẳng vuông góc, song song; đặc điểm hình bình hành, hình thoi', lv => {
     if (lv === 1) {
       const sides = ['AB', 'BC', 'CD', 'DA'], i = int(0, 3), s = sides[i], opp = sides[(i + 2) % 4], adj = [sides[(i + 1) % 4], sides[(i + 3) % 4]];
@@ -2660,7 +2662,7 @@
   });
 
   // ======================= LỚP 8 =======================
-  const pyrFig = (a, d) => svg(220, 150, 'Hình chóp tứ giác đều S.ABCD', '<polygon class="fig-shape" points="30,120 150,120 190,92 70,92"/><polygon class="fig-shape side" points="110,14 30,120 150,120"/><polygon class="fig-shape top" points="110,14 150,120 190,92"/>' + seg(110, 14, 70, 92, 'fig-dash') + seg(30, 120, 70, 92, 'fig-dash') + seg(70, 92, 190, 92, 'fig-dash') + seg(110, 14, 90, 120, 'fig-dash') + lab(110, 10, 'S') + lab(22, 132, 'A', 'end') + lab(158, 132, 'B', 'start') + lab(196, 92, 'C', 'start') + lab(66, 86, 'D', 'end') + (a ? lab(90, 140, a) : '') + (d ? lab(104, 66, d, 'start') : ''));
+  const pyrFig = (a, d) => svg(220, 154, 'Hình chóp tứ giác đều S.ABCD', '<g transform="translate(0 4)"><polygon class="fig-shape" points="30,120 150,120 190,92 70,92"/><polygon class="fig-shape side" points="110,14 30,120 150,120"/><polygon class="fig-shape top" points="110,14 150,120 190,92"/>' + seg(110, 14, 70, 92, 'fig-dash') + seg(30, 120, 70, 92, 'fig-dash') + seg(70, 92, 190, 92, 'fig-dash') + seg(110, 14, 90, 120, 'fig-dash') + lab(110, 10, 'S') + lab(22, 132, 'A', 'end') + lab(158, 132, 'B', 'start') + lab(196, 92, 'C', 'start') + lab(66, 86, 'D', 'end') + (a ? lab(90, 140, a) : '') + (d ? lab(97, 106, d, 'start') : '') + '</g>');
   T(8, 'g8.pyramid', 'Hình chóp tam giác đều, hình chóp tứ giác đều', 'Diện tích xung quanh, thể tích hình chóp đều', lv => {
     if (lv === 1) {
       if (chance(0.5)) { const a = int(3, 15), d = int(Math.ceil(a / 2) + 2, Math.ceil(a / 2) + 16); return num(2 * a * d, { q: 'Tính diện tích xung quanh của hình chóp tứ giác đều có cạnh đáy ' + a + ' cm và trung đoạn ' + d + ' cm.', qEn: 'Find the lateral surface area of a regular square pyramid with base edge ' + a + ' cm and slant height ' + d + ' cm.', unit: 'cm²', vis: pyrFig(a + ' cm', d + ' cm'), hint: 'S xq = p · d (p là nửa chu vi đáy, d là trung đoạn).', ex: steps(['Nửa chu vi đáy: p = 4 · ' + a + ' : 2 = ' + 2 * a + ' (cm).', 'S xq = p · d = ' + 2 * a + ' · ' + d + ' = ' + ans(2 * a * d + ' cm²') + '.']) }); }
@@ -5720,8 +5722,10 @@ lecture|The professor gave a lecture on history.|Giáo sư đã giảng một b�
     return Object.assign(mcStr(right, [sj.third ? v.s : v.b, v.past, v.ing]), { q: en(esc(sj.w) + ' ' + BL + ' ' + o + ' ' + tm + '.') + ' <small>(' + v.b + ')</small>', ex: steps(['Dấu hiệu “' + tm + '” → thì tương lai đơn: will + V nguyên thể.', 'Đáp án: <b>' + right + '</b>.']), say: sj.w + ' ' + right + ' ' + o + ' ' + tm + '.', sayAfter: true });
   });
   const NAMES_EN = ['Nam', 'Lan', 'Minh', 'Hoa', 'Tom', 'Mary', 'Mai', 'Peter'];
+  // lỗi hay gặp với tính từ dài: thêm -er/-est (viết đúng chính tả: expensive → expensiver, không phải expensiveer)
+  const erOf = w => w + (/e$/.test(w) ? 'r' : 'er'), estOf = w => w + (/e$/.test(w) ? 'st' : 'est');
   const compWrongs = a => {
-    if (a.c.indexOf('more ') === 0) return [a.a + 'er', a.s, a.a];
+    if (a.c.indexOf('more ') === 0) return [erOf(a.a), a.s, a.a];
     if (a.a === 'good') return ['gooder', 'best', 'more good'];
     if (a.a === 'bad') return ['badder', 'worst', 'more bad'];
     if (/y$/.test(a.a)) return [a.a + 'er', a.s, a.a];
@@ -5729,7 +5733,7 @@ lecture|The professor gave a lecture on history.|Giáo sư đã giảng một b�
     return ['more ' + a.a, a.s, a.a];
   };
   const supWrongs = a => {
-    if (a.s.indexOf('most ') === 0) return [a.a + 'est', a.c, a.a];
+    if (a.s.indexOf('most ') === 0) return [estOf(a.a), a.c, a.a];
     if (a.a === 'good') return ['goodest', 'better', 'most good'];
     if (a.a === 'bad') return ['baddest', 'worse', 'most bad'];
     if (/y$/.test(a.a)) return [a.a + 'est', a.c, a.a];
@@ -7588,17 +7592,28 @@ lecture|The professor gave a lecture on history.|Giáo sư đã giảng một b�
     for (let d = 0; d < mid; d++) { if (s[mid + d] === ' ') { cut = mid + d; break; } if (s[mid - d] === ' ') { cut = mid - d; break; } }
     return cut < 0 ? [s] : [s.slice(0, cut).trim(), s.slice(cut + 1).trim()];
   };
+  // ngắt chữ thành các dòng ≤ max ký tự; trả về null nếu cần quá maxLines dòng
+  const wrapWords = (s, max, maxLines) => {
+    const out = [];
+    let cur = '';
+    String(s).split(/\s+/).filter(Boolean).forEach(w => { if (!cur) cur = w; else if ((cur + ' ' + w).length <= max) cur += ' ' + w; else { out.push(cur); cur = w; } });
+    if (cur) out.push(cur);
+    return out.length <= maxLines && out.every(l => l.length <= max) ? out : null;
+  };
   const titleScene = (L, T) => {
     const lines = wrapLines(T.name, 24), longest = Math.max.apply(null, lines.map(x => x.length));
     const fs = Math.max(26, Math.min(46, Math.floor(1050 / Math.max(longest, 12))));
-    const sub = L.sub + (T.desc ? ' · ' + T.desc : ''), ss = Math.max(16, Math.min(24, Math.floor(1100 / Math.max(sub.length, 20))));
-    const y0 = lines.length > 1 ? 196 : 222;
+    // Dưới tên bài: "Lớp 3 · Toán" và mô tả nếu vừa 2 dòng. Mô tả dài đã có trọn vẹn ở lời cô bên dưới
+    // nên không đặt lên tranh (trước đây dòng này dài hơn khung tranh và bị mất chữ hai đầu).
+    const desc = T.desc ? wrapWords(T.desc, 44, 2) : null;
+    const subs = [[L.sub, 22, 700]].concat((desc || []).map(d => [d, 20, 600]));
+    const y0 = lines.length > 1 ? 196 : 222, yl = y0 + (lines.length - 1) * (fs + 8);
     const say = [V('Chào con! Hôm nay {gv} cùng con học:')].concat(SP.parts(T.name, L.subj), T.desc ? SP.parts(T.desc, L.subj) : []);
     return {
       ph: 'open', cap: 'Bài giảng: <b>' + esc(T.name) + '</b>' + (T.desc ? ' — ' + esc(T.desc) : ''), ms: 4200, say: say,
       draw: () => K.pop(0.15, K.emo(320, 132, L.icon, 80) + lines.map((ln, i) => K.tx(320, y0 + i * (fs + 8), esc(ln), { s: fs, w: 800, c: K.C.title })).join('')) +
-        K.up(0.9, K.rect(170, y0 + (lines.length - 1) * (fs + 8) + 26, 300, 4, COLOR[L.subj], { r: 2 }) + K.tx(320, y0 + (lines.length - 1) * (fs + 8) + 68, esc(sub), { s: ss, w: 600, c: K.C.mute, f: K.FB })) +
-        K.sparkle(130, 110, 1.4) + K.sparkle(515, 100, 1.6) + K.sparkle(525, 330, 1.8)
+        K.up(0.9, K.rect(170, yl + 26, 300, 4, COLOR[L.subj], { r: 2 }) + subs.map((x, i) => K.tx(320, yl + 62 + i * 28, esc(x[0]), { s: x[1], w: x[2], c: K.C.mute, f: K.FB })).join('')) +
+        K.sparkle(130, 110, 1.4) + K.sparkle(515, 100, 1.6) + K.sparkle(452, 50, 1.8, 24)
     };
   };
   const head = (tag, right, cls) => '<div class="bd-h"><span class="bd-tag' + (cls ? ' ' + cls : '') + '">' + tag + '</span><span class="bd-t">' + right + '</span></div>';
@@ -11992,7 +12007,7 @@ var qrcode = function() {
     return '<header class="topbar' + (o.wide ? ' wide' : '') + (o.cls ? ' ' + o.cls : '') + '"><div class="topbar-in">' +
       (o.back ? '<button class="tb-btn" data-a="' + o.back + '" aria-label="Quay lại">' + I('arrow-left') + '</button>' : '') +
       (o.avatar ? '<button class="tb-avatar" data-a="toPicker" aria-label="Đổi người học">' + o.avatar + '</button>' : '') +
-      '<div class="title"><b>' + esc(o.title || '') + '</b>' + (o.sub ? '<span>' + o.sub + '</span>' : '') + '</div>' + (o.right || '') + '</div></header>';
+      '<div class="title' + (String(o.title || '').length > 22 ? ' long' : '') + '"><b>' + esc(o.title || '') + '</b>' + (o.sub ? '<span>' + o.sub + '</span>' : '') + '</div>' + (o.right || '') + '</div></header>';
   };
   // Thương hiệu: biểu tượng ngôi sao trắng ôm chữ A+ (giống biểu tượng ứng dụng)
   UI.TAGLINE = 'Toán song ngữ · Tiếng Anh · Tư duy';
@@ -12013,9 +12028,11 @@ var qrcode = function() {
     return '<nav class="tabbar" aria-label="Điều hướng chính"><div class="tabbar-in">' + tab('home', 'toHome', 'house', 'Học') + tab('lessons', 'openLessons', 'clapperboard', 'Bài giảng') +
       tab('notebook', 'openNotebook', 'notebook-pen', 'Sổ tay', n ? '<b class="dot">' + (n > 99 ? '99+' : n) + '</b>' : '') + tab('rewards', 'openRewards', 'gift', 'Đổi quà') + tab('badges', 'openBadges', 'medal', 'Huy hiệu') + '</div></nav>';
   };
-  UI.kidPills = kid => {
+  // only === 'star': chỉ hiện sao (màn bài giảng có tên bài dài, cần chỗ cho tên bài)
+  UI.kidPills = (kid, only) => {
     const st = ST.streakNow(kid);
-    return '<span class="pill star" title="Sao hiện có">' + I('star') + U.fmt(kid.stars) + '</span><span class="pill fire' + (st ? ' on' : '') + '" title="Chuỗi ngày học">' + I('flame') + st + '</span>';
+    const star = '<span class="pill star" title="Sao hiện có">' + I('star') + U.fmt(kid.stars) + '</span>';
+    return only === 'star' ? star : star + '<span class="pill fire' + (st ? ' on' : '') + '" title="Chuỗi ngày học">' + I('flame') + st + '</span>';
   };
 
   // ---------- toast ----------
@@ -12501,10 +12518,53 @@ var qrcode = function() {
       const cr = c.getBoundingClientRect(), or = on.getBoundingClientRect();
       c.scrollLeft += (or.left - cr.left) - (cr.width - or.width) / 2;
     });
+    UI.fit(app); UI.fit(mr);
     const fns = UI.after; UI.after = [];
     fns.forEach(f => { try { f(); } catch (e) { console.error(e); } });
   };
-  window.addEventListener('resize', () => { const d = document.querySelector('#app .dock'); if (d) document.body.style.setProperty('--dockh', d.offsetHeight + 'px'); });
+  // ---------- tự xếp lại theo chỗ thật trên máy (chạy ngay sau khi vẽ, trước khi màn hình hiện ra) ----------
+  // Ô đáp án nhiều cột: nếu có từ không vừa bề ngang ô (phải bẻ đôi) hoặc chữ quá nhiều dòng thì xếp thành một cột.
+  const textLines = el => {
+    const tops = [], w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT), r = document.createRange();
+    for (let n = w.nextNode(); n; n = w.nextNode()) {
+      if (!/\S/.test(n.nodeValue)) continue;
+      r.selectNodeContents(n);
+      Array.prototype.forEach.call(r.getClientRects(), b => { if (b.width > 0.5 && !tops.some(t => Math.abs(t - b.top) < 3)) tops.push(b.top); });
+    }
+    return tops.length;
+  };
+  const innerW = el => { const cs = getComputedStyle(el); return el.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0); };
+  UI.fitOpts = root => {
+    (root || document).querySelectorAll('.opts:not(.one)').forEach(box => {
+      const items = Array.prototype.filter.call(box.children, b => b.classList.contains('opt') && !b.classList.contains('pic'));
+      if (!items.length || !box.clientWidth) return;
+      const tx = b => b.lastElementChild || b;
+      box.classList.add('fit-test');
+      let bad = items.some(b => tx(b) !== b && tx(b).getBoundingClientRect().width > innerW(b) + 0.5);
+      box.classList.remove('fit-test');
+      const max = box.classList.contains('three') ? 2 : 3;
+      if (!bad) bad = items.some(b => { const ps = b.querySelectorAll('.en, .vi-sub'); return (ps.length ? Array.prototype.slice.call(ps) : [tx(b)]).some(p => textLines(p) > max); });
+      if (bad) { box.classList.remove('three'); box.classList.add('one'); }
+    });
+  };
+  UI.fit = root => { if (!root) return; try { UI.fitOpts(root); } catch (e) { console.error(e); } };
+  // Không cho xuống dòng giữa một cụm ký hiệu: |A|√B, …when (chỉ sửa phần chữ, không đụng thẻ HTML)
+  UI.glue = html => String(html).split(/(<[^>]*>)/).map((p, i) => (i % 2 ? p : p.replace(/\|(?=\S)/g, '|⁠').replace(/…(?=[^\s<])/g, '…⁠'))).join('');
+  // Tên gọi ở chỗ hẹp (thanh trên cùng, nút "Học tiếp"): "Nguyễn Ngọc Bảo Anh" → "Bảo Anh", "Nguyễn Văn Minh" → "Minh"
+  UI.callName = k => {
+    const w = String((k && k.name) || '').trim().split(/\s+/).filter(Boolean);
+    if (w.length <= 2) return w.join(' ');
+    let r = w.slice(1);
+    while (r.length > 1 && /^(văn|thị)$/i.test(r[0])) r = r.slice(1);
+    return r.slice(-2).join(' ');
+  };
+  let fitT = 0;
+  window.addEventListener('resize', () => {
+    const d = document.querySelector('#app .dock'); if (d) document.body.style.setProperty('--dockh', d.offsetHeight + 'px');
+    clearTimeout(fitT); fitT = setTimeout(() => { UI.fit(document.getElementById('app')); UI.fit(document.getElementById('modal-root')); }, 120);
+  });
+  // phông chữ nạp xong có thể làm chữ rộng ra: đo lại một lần
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { UI.fit(document.getElementById('app')); UI.fit(document.getElementById('modal-root')); }).catch(() => {});
   UI.A.toPicker = () => { HV.PR && HV.PR.stopTimers && HV.PR.stopTimers(); UI.go(Object.keys(ST.state.kids).length ? 'picker' : 'welcome', { kidId: null }); };
   UI.A.toHome = () => { HV.PR && HV.PR.stopTimers && HV.PR.stopTimers(); UI.go('home'); };
   UI.A.toggleSound = () => { ST.state.meta.sound = !SFX.on(); ST.mark('meta'); UI.toast(SFX.on() ? 'Đã bật âm thanh' : 'Đã tắt âm thanh'); UI.render(); };
@@ -12746,7 +12806,7 @@ var qrcode = function() {
       UI.go('parent');
     } else {
       const k = ST.addKid({ name: name, avatar: f.avatar, photo: f.photo || '', grade: f.grade, eng: f.eng, goal: f.goal });
-      UI.toast('Chào mừng ' + esc(k.name) + ' đến với ' + HV.BRAND + '!', 'star');
+      UI.toast('Chào mừng ' + esc(UI.callName(k)) + ' đến với ' + HV.BRAND + '!', 'star');
       if (f.back === 'parent' && UI.S.parent.unlocked) { UI.S.parent.kidId = k.id; UI.S.parent.tab = 'kid'; UI.go('parent'); }
       else if (f.then && ST.SUBJ[f.then]) { UI.S.kidId = k.id; UI.go('subject', { subj: f.then, vk: HV.viewKeyFor(k, f.then), theme: '' }); }
       else UI.go('home', { kidId: k.id });
@@ -12759,8 +12819,8 @@ var qrcode = function() {
     if (!kids.length) return V.welcome();
     const k = UI.landingKid(), others = kids.filter(x => x !== k);
     return '<div class="hx">' + UI.hxHero(hxTop()) + '<div class="wrap hx-body">' +
-      '<button class="hx-cta" data-a="pickKid" data-id="' + k.id + '"><span class="hx-plus av" aria-hidden="true">' + UI.avIn(k) + '</span><span class="hx-cta-t">Học tiếp cùng ' + esc(k.name) + '</span>' + I('chevron-right') + '</button>' +
-      '<div class="hx-kids">' + others.map(x => '<button class="hx-kid" data-a="pickKid" data-id="' + x.id + '"><span class="av" aria-hidden="true">' + UI.avIn(x) + '</span>' + esc(x.name) + '</button>').join('') +
+      '<button class="hx-cta" data-a="pickKid" data-id="' + k.id + '"><span class="hx-plus av" aria-hidden="true">' + UI.avIn(k) + '</span><span class="hx-cta-t">Học tiếp cùng ' + esc(UI.callName(k)) + '</span>' + I('chevron-right') + '</button>' +
+      '<div class="hx-kids">' + others.map(x => '<button class="hx-kid" data-a="pickKid" data-id="' + x.id + '"><span class="av" aria-hidden="true">' + UI.avIn(x) + '</span>' + esc(UI.callName(x)) + '</button>').join('') +
       '<button class="hx-kid add" data-a="newKid">' + I('user-plus') + 'Thêm bé</button></div>' +
       hxSubjects() + hxParent() + '</div></div>';
   };
@@ -12789,7 +12849,7 @@ var qrcode = function() {
         (todo ? (vs.newLeft ? vs.newLeft + ' từ mới' : '') + (vs.newLeft && vs.due ? ' · ' : '') + (vs.due ? vs.due + ' từ cần ôn' : '') : 'Đã xong — mai có từ mới') + ' · đã học ' + vs.learned + ' từ</small></span>' + (todo ? '<span class="badge">' + todo + '</span>' : I('check')) + I('chevron-right') + '</button>';
     };
     const qb = (a, icon, label, extra) => '<button class="qbtn" data-a="' + a + '"><span class="q-ic">' + I(icon) + '</span><span>' + label + '</span>' + (extra || '') + '</button>';
-    return UI.topbar({ avatar: UI.av(k), title: k.name, sub: lv.title + ' · Cấp ' + lv.lv + ' · ' + ST.gradeLabel(k.grade), right: right }) +
+    return UI.topbar({ avatar: UI.av(k), title: UI.callName(k), sub: lv.title + ' · Cấp ' + lv.lv + ' · ' + ST.gradeLabel(k.grade), right: right }) +
       '<div class="wrap hx-home">' + UI.hxHero('', true) +
       '<section class="card"><div class="mission">' + UI.ring(today.n, k.goal, today.n + '/' + k.goal, 'câu') +
       '<div class="stack" style="gap:6px"><div class="eyebrow">Nhiệm vụ hôm nay</div><b style="font-size:1.1rem">' + esc(greet) + '</b>' +
@@ -13120,8 +13180,13 @@ var qrcode = function() {
   PR.answerUI = (q, resp, done, okFlag) => {
     if (q.t === 'mc') {
       const mode = PR.mode(q);
-      const long = q.opts.some((o, i) => U.plain(o).length > 18 || (mode !== 'vi' && U.plain(PR.optEn(q, i)).length > 18));
-      const cls = q.pics ? '' : long ? ' one' : (q.opts.length === 3 && !long ? ' three' : '');
+      // Chọn bố cục theo độ dài chữ: 3 cột chỉ cho đáp án rất ngắn, chữ dài xếp một cột.
+      // Sau khi vẽ, UI.fitOpts đo thật trên máy và xếp lại một cột nếu còn từ phải bẻ đôi.
+      const texts = [];
+      q.opts.forEach((o, i) => { texts.push(U.plain(o)); if (mode !== 'vi') texts.push(U.plain(PR.optEn(q, i))); });
+      const maxLen = Math.max.apply(null, texts.map(t => t.length));
+      const maxWord = Math.max.apply(null, texts.map(t => Math.max.apply(null, t.split(/\s+/).map(w => w.length))));
+      const cls = q.pics ? '' : maxLen > 18 || maxWord > 12 ? ' one' : q.opts.length === 3 ? (maxLen <= 9 && maxWord <= 7 ? ' three' : ' one') : '';
       return '<div class="opts' + cls + '" role="group" aria-label="Các lựa chọn">' + q.opts.map((o, i) => {
         let c = 'opt' + (q.pics ? ' pic' : '');
         if (done) { if (i === q.a) c += ' right'; else if (i === resp) c += ' wrong'; } else if (i === resp) c += ' sel';
@@ -14884,7 +14949,7 @@ var qrcode = function() {
         (s.vsrc ? '<button class="les-play" data-a="lessonVideoStart" aria-label="Xem video">' + I('play') + '</button>' : '<p class="les-note">Đang mở video…</p>') + '</div></div>' : '<div id="les-video-slot"></div>';
       if (s.vstarted) UI.after.push(mountVideo);
       const capV = s.vstarted ? 'Con xem ' + G.pron + ' giảng nhé. Xem xong, con tự làm câu “Đến lượt con”, rồi luyện tập.' : 'Bài này có video ' + esc(G.title) + ' giảng. Bấm <b>▶</b> để xem nhé!';
-      return UI.topbar({ cls: 'qbar', back: 'lessonBack', title: L.title, sub: L.sub + ' · Video thầy cô', right: k ? UI.kidPills(k) : '' }) +
+      return UI.topbar({ cls: 'qbar', back: 'lessonBack', title: L.title, sub: L.sub + ' · Video thầy cô', right: k ? UI.kidPills(k, 'star') : '' }) +
         '<div class="wrap"><div class="player">' + phaseBar(s.vstarted ? 'teach' : 'open') + '<div class="stage is-video" id="stage">' + stageV + '</div>' +
         '<div class="t-say">' + UI.teacherAva('teacher') + '<div class="t-bubble caption" aria-live="polite"><small class="t-who">' + esc(G.title) + '</small><div>' + capV + '</div></div></div>' +
         '<div class="row wrapr vid-ctrl">' + (s.vstarted ? '<button class="btn primary grow" data-a="lessonVideoDone">' + I('brain') + 'Xem xong — con tự làm bài</button>' : '<button class="btn primary grow" data-a="lessonVideoStart"' + (s.vsrc ? '' : ' disabled') + '>' + I('play') + 'Xem video ' + esc(G.title) + '</button>') +
@@ -14912,10 +14977,10 @@ var qrcode = function() {
       '<button class="cbtn main" id="les-toggle" data-a="lessonToggle" aria-label="' + (s.playing ? 'Tạm dừng' : 'Phát') + '">' + I(s.playing ? 'pause' : 'play') + '</button>' +
       '<button class="cbtn" data-a="lessonNext" aria-label="Cảnh sau"' + (s.i >= n - 1 || !s.started ? ' disabled' : '') + '>' + I('skip-forward') + '</button>' + dots +
       '<button class="cbtn" id="les-narr" data-a="lessonNarr" aria-label="Giọng đọc" aria-pressed="' + narrOn + '">' + I(narrOn ? 'volume-2' : 'volume-x') + '</button></div>';
-    const cap = s.started ? sc.cap : 'Chào con! Bấm <b>▶</b> để ' + G.pron + ' bắt đầu giảng bài nhé.';
+    const cap = s.started ? UI.glue(sc.cap) : 'Chào con! Bấm <b>▶</b> để ' + G.pron + ' bắt đầu giảng bài nhé.';
     const who = !s.started || ph === 'open' ? G.title : ph === 'think' ? G.Pron + ' hỏi' : ph === 'fix' ? G.Pron + ' chữa bài' : G.Pron + ' giảng';
     const say = '<div class="t-say">' + UI.teacherAva('teacher') + '<div class="t-bubble caption" aria-live="polite"><small class="t-who">' + who + '</small><div>' + cap + '</div></div></div>';
-    return UI.topbar({ cls: 'qbar', back: 'lessonBack', title: L.title, sub: L.sub + (s.started ? ' · Cảnh ' + (s.i + 1) + '/' + n : ''), right: k ? UI.kidPills(k) : '' }) +
+    return UI.topbar({ cls: 'qbar', back: 'lessonBack', title: L.title, sub: L.sub + (s.started ? ' · Cảnh ' + (s.i + 1) + '/' + n : ''), right: k ? UI.kidPills(k, 'star') : '' }) +
       '<div class="wrap"><div class="player">' + phaseBar(ph) + '<div class="stage' + (s.started && sc.html ? ' is-board' : '') + '" id="stage">' + stage + '</div>' +
       say + (s.thinking && sc.think ? thinkPanel(s, sc) : '') + ctrl + '</div>' +
       (s.vid && !s.thinking ? '<button class="card row les-next les-vid" data-a="lessonVideoMode"><span class="les-thumb vid">' + I('tv') + '</span><span class="grow"><b>Xem video ' + esc(G.title) + ' giảng</b><br><small>Bài này có video thầy cô thật</small></span>' + I('chevron-right') + '</button>' : '') +
