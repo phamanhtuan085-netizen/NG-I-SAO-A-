@@ -9208,8 +9208,11 @@ lecture|The professor gave a lecture on history.|Giáo sư đã giảng một b�
 
   // ---------- mã kích hoạt (bản web / APK) ----------
   // Dạng: NSA1.<8 byte dữ liệu base64url>.<chữ ký ECDSA P-256 / SHA-256, 64 byte base64url>
-  // Dữ liệu: [phiên bản=1][gói: 1 tuần · 2 tháng · 3 năm][hạn dùng: số ngày kể từ 01/01/2024, 2 byte][số sê-ri, 4 byte]
-  // Chữ ký ký trên chuỗi ASCII "NSA1.<dữ liệu>". Hạn dùng tính đến hết ngày ghi trong mã theo giờ Việt Nam (UTC+7).
+  // Mã gói:     [1][gói: 1 tuần · 2 tháng · 3 năm][hạn dùng: số ngày kể từ 01/01/2024, 2 byte][số sê-ri, 4 byte]
+  // Mã dùng thử: [2][số ngày dùng thử 1–255][hạn nhận: số ngày kể từ 01/01/2024, 2 byte][số sê-ri, 4 byte]
+  //   → dùng thử N ngày tính từ lần đầu mở trên máy, phải mở trước hết ngày hạn nhận; mỗi máy dùng một lần (ghi trong meta.trials).
+  //   Bản ứng dụng cũ (chỉ biết phiên bản 1) coi mã dùng thử là mã sai, không mở nhầm Premium dài hạn.
+  // Chữ ký ký trên chuỗi ASCII "NSA1.<dữ liệu>". Hạn tính đến hết ngày ghi trong mã theo giờ Việt Nam (UTC+7).
   const EPOCH = Date.UTC(2024, 0, 1), VN = 7 * 3600000;
   const PLAN_OF = { 1: 'week', 2: 'month', 3: 'year' };
   let PUB = { kty: 'EC', crv: 'P-256', x: 'fAVzO9PcCMY1VumimOLTirGd9PYgu0aH1BGxvvZYc-0', y: 'RT9m8Ysk6PRYRP34xVnhHydI_y-DcMYRLppxiN41nJo' };
@@ -9231,11 +9234,16 @@ lecture|The professor gave a lecture on history.|Giáo sư đã giảng một b�
     if (!m) return null;
     let p;
     try { p = b64uDec(m[1]); } catch (e) { return null; }
-    if (p.length !== 8 || p[0] !== 1 || !PLAN_OF[p[1]]) return null;
+    if (p.length !== 8) return null;
     const day = p[2] * 256 + p[3], serial = ((p[4] * 16777216) + (p[5] << 16) + (p[6] << 8) + p[7]) >>> 0;
-    return { code: s, msg: 'NSA1.' + m[1], sig: m[2], plan: PLAN_OF[p[1]], until: EPOCH + (day + 1) * DAY - VN - 1, serial: serial };
+    const base = { code: s, msg: 'NSA1.' + m[1], sig: m[2], until: EPOCH + (day + 1) * DAY - VN - 1, serial: serial };
+    if (p[0] === 1 && PLAN_OF[p[1]]) return Object.assign(base, { plan: PLAN_OF[p[1]] });
+    // mã dùng thử: until = hạn nhận (phải mở trước thời điểm này), days = số ngày dùng thử kể từ lần mở đầu tiên
+    if (p[0] === 2 && p[1] >= 1) return Object.assign(base, { plan: 'trial', trial: true, days: p[1] });
+    return null;
   };
-  P.verify = async raw => {
+  // o.keep: kiểm tra lại mã đã kích hoạt lúc mở ứng dụng — mã dùng thử đã nhận trước hạn thì vẫn dùng hết số ngày dùng thử
+  P.verify = async (raw, o) => {
     const c = P.parse(raw);
     if (!c) return { ok: false, why: 'format' };
     const S = subtle();
@@ -9245,27 +9253,56 @@ lecture|The professor gave a lecture on history.|Giáo sư đã giảng một b�
       const good = await S.verify({ name: 'ECDSA', hash: 'SHA-256' }, pubKey, b64uDec(c.sig), new TextEncoder().encode(c.msg));
       if (!good) return { ok: false, why: 'sig' };
     } catch (e) { return { ok: false, why: 'crypto' }; }
-    if (c.until <= Date.now()) return { ok: false, why: 'expired', c: c };
+    if (c.until <= Date.now() && !(c.trial && o && o.keep)) return { ok: false, why: c.trial ? 'trialExpired' : 'expired', c: c };
     return { ok: true, c: c };
   };
+  // sổ dùng thử trên máy: { sê-ri: thời điểm mở lần đầu }
+  const trials = () => { const t = ST.state.meta.trials; return t && typeof t === 'object' ? t : {}; };
+  P.trialEnd = (c, act) => (+act || Date.now()) + c.days * DAY;
   P.activate = async raw => {
     if (!P.on()) return { ok: false, why: 'off' };
     if (!P.useCodes()) return { ok: false, why: 'store' };
     const r = await P.verify(raw);
     if (!r.ok) return r;
-    if (P.ent && P.ent.until >= r.c.until) return { ok: true, longer: true, c: r.c, ent: P.ent };
-    P.ent = { until: r.c.until, plan: r.c.plan, src: 'code', ts: Date.now() };
-    save(Object.assign({ code: r.c.code }, P.ent));
+    const c = r.c, now = Date.now();
+    let until = c.until, act = 0;
+    if (c.trial) {
+      act = +trials()[c.serial] || now;
+      until = P.trialEnd(c, act);
+      if (until <= now) return { ok: false, why: 'trialUsed', c: c };
+    }
+    if (P.ent && P.ent.until >= until) return { ok: true, longer: true, c: c, ent: P.ent };
+    if (c.trial && !trials()[c.serial]) { ST.state.meta.trials = Object.assign({}, trials(), { [c.serial]: act }); }
+    P.ent = { until: until, plan: c.plan, src: 'code', ts: now };
+    if (act) P.ent.act = act;
+    save(Object.assign({ code: c.code }, P.ent));
     emit();
-    return { ok: true, c: r.c, ent: P.ent };
+    return { ok: true, c: c, ent: P.ent };
   };
-  // link kích hoạt mở trên trình duyệt: …/app/#kh=<mã>
+  // link kích hoạt mở trên trình duyệt: …/app/#kh=<mã> hoặc …/app/?kh=<mã>
+  // Trang cài app (cai-dat.html) gửi mã qua cookie nsa_kh: iPhone / iPad chép cookie sang biểu tượng vừa thêm vào màn hình chính
+  // (bộ nhớ của biểu tượng tách riêng khỏi Safari); Android, máy tính dùng chung cookie giữa trình duyệt và app đã cài.
+  const KH = 'nsa_kh';
+  const dir = () => String((W.location && W.location.pathname) || '/').replace(/[^/]*$/, '') || '/';
+  P.cookieCode = () => { try { const m = /(?:^|;\s*)nsa_kh=([A-Za-z0-9._-]+)/.exec(String(W.document && W.document.cookie || '')); return m ? m[1] : ''; } catch (e) { return ''; } };
+  P.dropCookie = () => { try { W.document.cookie = KH + '=; path=' + dir() + '; max-age=0; SameSite=Lax'; } catch (e) { /* bỏ qua */ } };
+  P.standalone = () => { try { return !!((W.navigator && W.navigator.standalone) || (W.matchMedia && ['standalone', 'fullscreen', 'minimal-ui'].some(d => W.matchMedia('(display-mode: ' + d + ')').matches))); } catch (e) { return false; } };
   P.fromLink = async () => {
     if (!P.on() || !P.useCodes() || !W.location) return null;
-    const h = String(W.location.hash || '');
-    if (h.indexOf('kh=') < 0) return null;
-    try { W.history.replaceState(null, '', W.location.pathname + W.location.search); } catch (e) { /* bỏ qua */ }
-    return P.activate(h);
+    const h = String(W.location.hash || ''), q = String(W.location.search || '');
+    if (h.indexOf('kh=') >= 0 || /[?&]kh=/.test(q)) {
+      let qs = '';
+      try { const sp = new URLSearchParams(q); sp.delete('kh'); qs = sp.toString() ? '?' + sp.toString() : ''; } catch (e) { qs = ''; }
+      try { W.history.replaceState(null, '', W.location.pathname + qs); } catch (e) { /* bỏ qua */ }
+      return P.activate(h.indexOf('kh=') >= 0 ? h : q);
+    }
+    const ck = P.cookieCode();
+    if (!ck) return null;
+    // trong app đã cài (biểu tượng trên màn hình): dùng xong thì xóa; trên trình duyệt giữ lại để lần thêm vào màn hình chính sau vẫn mang theo
+    if (P.standalone()) P.dropCookie();
+    const r = await P.activate(ck);
+    if (!r.ok) { P.dropCookie(); return r; }
+    return r.longer ? null : r;
   };
 
   // ---------- mua trong ứng dụng (App Store / Google Play) ----------
@@ -9387,11 +9424,15 @@ lecture|The professor gave a lecture on history.|Giáo sư đã giảng một b�
     P.ent = null;
     if (!P.on()) return;
     const s = ST.state.meta.prem, now = Date.now();
+    // hết thời gian dùng thử: báo một lần để bố mẹ chọn gói (phần miễn phí vẫn dùng bình thường)
+    P.trialEnded = !!(s && typeof s === 'object' && s.plan === 'trial' && s.src === 'code' && +s.until <= now && !s.told);
+    if (P.trialEnded) { s.told = 1; ST.mark('meta'); }
     if (s && typeof s === 'object' && +s.until > now) {
       if (s.src === 'code' && P.useCodes() && s.code) {
         P.ent = { until: +s.until, plan: s.plan || '', src: 'code', ts: +s.ts || 0 };
-        P.verify(s.code).then(r => {
-          if (r.ok) { if (P.ent && P.ent.src === 'code') P.ent.until = Math.min(P.ent.until, r.c.until); }
+        if (s.act) P.ent.act = +s.act;
+        P.verify(s.code, { keep: true }).then(r => {
+          if (r.ok) { if (P.ent && P.ent.src === 'code') P.ent.until = Math.min(P.ent.until, r.c.trial ? P.trialEnd(r.c, +trials()[r.c.serial] || +s.act || +s.ts) : r.c.until); }
           else if (r.why !== 'crypto' && P.ent && P.ent.src === 'code') { P.ent = null; save(null); }
           emit();
         });
@@ -11865,7 +11906,7 @@ lecture|The professor gave a lecture on history.|Giáo sư đã giảng một b�
       setRow('Xóa toàn bộ dữ liệu', 'Xóa mọi hồ sơ, lịch sử, phần thưởng và mã PIN. Không thể hoàn tác.', '<button class="btn sm danger" data-a="resetOpen">' + I('trash-2') + 'Xóa tất cả</button>') + '</section>';
     const prem = HV.PREM && HV.PREM.on();
     const about = '<section class="card stack"><h3>' + I('info') + ' Giới thiệu</h3><p class="muted" style="font-size:.92rem">' + HV.BRAND + ' ' + HV.VERSION + ' · Toán song ngữ Anh – Việt theo chương trình GDPT 2018 (mầm non – lớp 9), Tiếng Anh theo khung Cambridge (Starters → B1 Preliminary), Tư duy theo từng lớp. Đề bài được sinh tự động nên mỗi lượt luyện đều mới.</p><p class="muted" style="font-size:.92rem">' + (prem ? 'Không quảng cáo. Tải miễn phí; gói Premium (tuần / tháng / năm) mở trọn bộ bài học. Dữ liệu học tập chỉ lưu trên thiết bị của bạn.' : 'Không quảng cáo, không mua hàng trong ứng dụng. Dữ liệu học tập chỉ lưu cho tài khoản/thiết bị của bạn.') + '</p><p class="muted" style="font-size:.82rem">Nhân vật thầy cô 3D: Fluent Emoji © Microsoft Corporation, giấy phép MIT. Ảnh cô giáo và ảnh nền các bé: tài sản của ' + HV.BRAND + '.</p></section>';
-    return (UI.premCard ? UI.premCard() : '') + '<div class="charts">' + rewards + learn + '</div><div class="charts">' + sec + data + '</div>' + about;
+    return (UI.premCard ? UI.premCard() : '') + (UI.installCard ? UI.installCard() : '') + '<div class="charts">' + rewards + learn + '</div><div class="charts">' + sec + data + '</div>' + about;
   };
   A.setLen = d => { ST.state.meta.len = +d.v; ST.mark('meta'); UI.render(); };
   A.setVocN = d => { ST.state.meta.vocN = +d.v; ST.mark('meta'); UI.toast('Mỗi ngày ' + d.v + ' từ mới — áp dụng từ ngày mai'); UI.render(); };
@@ -13649,7 +13690,8 @@ lecture|The professor gave a lecture on history.|Giáo sư đã giảng một b�
   const SITE = 'https://phamanhtuan085-netizen.github.io/NG-I-SAO-A-/';
   const link = k => { const c = (typeof window !== 'undefined' && window.HVNS_STORE && window.HVNS_STORE.links) || {}; return /^https:\/\/[^\s"'<>]+$/.test(c[k] || '') ? c[k] : SITE + (k === 'terms' ? 'dieu-khoan-su-dung.html' : k === 'privacy' ? 'chinh-sach-quyen-rieng-tu.html' : '#bang-gia'); };
   const dateVi = ts => { const d = new Date(ts); return U.pad(d.getDate()) + '/' + U.pad(d.getMonth() + 1) + '/' + d.getFullYear(); };
-  const planName = k => (P.plan(k) ? P.plan(k).name : 'Premium');
+  const planName = k => (k === 'trial' ? 'Dùng thử Premium' : P.plan(k) ? P.plan(k).name : 'Premium');
+  const daysLeft = until => Math.max(1, Math.ceil((until - Date.now()) / P.DAY));
 
   // ---------- dấu Premium ----------
   UI.premTag = () => '<span class="tag prem">' + I('crown') + 'Premium</span>';
@@ -13683,6 +13725,8 @@ lecture|The professor gave a lecture on history.|Giáo sư đã giảng một b�
     format: 'Mã chưa đúng. Hãy dán đầy đủ mã (bắt đầu bằng NSA1.) hoặc cả đường link kích hoạt.',
     sig: 'Mã không hợp lệ. Kiểm tra lại mã hoặc liên hệ nơi bán.',
     expired: 'Mã này đã hết hạn sử dụng.',
+    trialExpired: 'Link dùng thử này đã hết hạn nhận. Bố mẹ chọn gói để mở trọn bộ cho con.',
+    trialUsed: 'Máy này đã dùng hết thời gian dùng thử của link này. Bố mẹ chọn gói để con học tiếp trọn bộ.',
     crypto: 'Trình duyệt này chưa kiểm tra được mã. Hãy mở bằng Chrome hoặc Safari bản mới.',
     store: 'Bản tải từ cửa hàng dùng gói mua trong ứng dụng.',
     off: ''
@@ -13700,7 +13744,8 @@ lecture|The professor gave a lecture on history.|Giáo sư đã giảng một b�
     return 'Phần này';
   };
   // dòng nhắc phần vừa bấm (khi mở từ một bài đang khóa)
-  const lockedNote = m => (m.k || m.lesson || m.story || m.pat || m.test || m.voc
+  const lockedNote = m => (m.ended ? '<p class="pw-what">' + I('hourglass') + '<span>Đã hết thời gian dùng thử Premium. Chọn gói để con học tiếp trọn bộ; phần miễn phí vẫn học bình thường.</span></p>'
+    : m.k || m.lesson || m.story || m.pat || m.test || m.voc
     ? '<p class="pw-what">' + I('crown') + '<span>' + what(m) + ' thuộc gói Premium. Các bài miễn phí vẫn học bình thường.</span></p>' : '');
   // giá quy ra mỗi tháng / mức tiết kiệm so với gói tháng (chỉ khi cùng đơn vị tiền)
   const num = k => {
@@ -13761,10 +13806,12 @@ lecture|The professor gave a lecture on history.|Giáo sư đã giảng một b�
     (m.err ? '<div class="pw-err" role="alert">' + I('triangle-alert') + '<span>' + esc(m.err) + '</span></div>' : '') +
     '<div class="row"><button class="btn primary grow" data-a="pwActivate"' + (m.busy ? ' disabled' : '') + '>' + I('lock-open') + 'Kích hoạt</button><button class="btn ghost" data-a="pwBack">Quay lại</button></div></div>';
   const doneStep = m => {
-    const e = P.ent || {}, store = e.src === 'store';
-    return '<div class="pw-done"><span class="pw-crown on" aria-hidden="true">' + I('crown') + '</span><h2>Đã mở khóa Premium!</h2>' +
-      '<p><b>' + esc(planName(e.plan)) + '</b>' + (store ? ' · tự gia hạn qua ' + P.storeName() : e.until ? ' · dùng đến <b>' + dateVi(e.until) + '</b>' : '') + '</p>' +
-      (m.longer ? '<p class="muted">Gói đang dùng còn hạn lâu hơn mã vừa nhập nên được giữ nguyên.</p>' : '<p class="muted">Mọi bài học của ' + HV.BRAND + ' đã sẵn sàng cho các con.</p>') +
+    const e = P.ent || {}, store = e.src === 'store', trial = e.plan === 'trial';
+    return '<div class="pw-done"><span class="pw-crown on" aria-hidden="true">' + I(trial ? 'gift' : 'crown') + '</span><h2>' + (trial ? 'Đã mở dùng thử Premium!' : 'Đã mở khóa Premium!') + '</h2>' +
+      '<p><b>' + esc(planName(e.plan)) + '</b>' + (store ? ' · tự gia hạn qua ' + P.storeName() : e.until ? (trial ? ' ' + daysLeft(e.until) + ' ngày' : '') + ' · dùng đến <b>' + dateVi(e.until) + '</b>' : '') + '</p>' +
+      (m.longer ? '<p class="muted">Gói đang dùng còn hạn lâu hơn mã vừa nhập nên được giữ nguyên.</p>'
+        : trial ? '<p class="muted">Con học trọn bộ đến hết ngày này. Sau đó bố mẹ chọn gói để học tiếp; phần miễn phí vẫn dùng bình thường.</p>'
+        : '<p class="muted">Mọi bài học của ' + HV.BRAND + ' đã sẵn sàng cho các con.</p>') +
       '<button class="btn accent big block" data-a="pwDoneGo">' + I('play') + 'Học ngay</button></div>';
   };
   M.prem = m => {
@@ -13831,15 +13878,22 @@ lecture|The professor gave a lecture on history.|Giáo sư đã giảng một b�
   // ---------- thẻ Gói Premium trong Góc phụ huynh ----------
   UI.premCard = () => {
     if (!on()) return '';
-    const e = P.ent, act = P.active(), store = P.channel() === 'store';
-    const state = act
+    const e = P.ent, act = P.active(), store = P.channel() === 'store', trial = !!(act && e && e.plan === 'trial');
+    const state = trial
+      ? '<div class="prem-state on">' + I('gift') + '<span><b>Đang dùng thử Premium · còn ' + daysLeft(e.until) + ' ngày</b><small>Dùng thử đến hết ngày ' + dateVi(e.until) + '. Sau đó chọn gói để con học tiếp trọn bộ.</small></span></div>'
+      : act
       ? '<div class="prem-state on">' + I('crown') + '<span><b>Đang dùng Premium · ' + esc(planName(e && e.plan)) + '</b><small>' + (e && e.src === 'store' ? 'Tự gia hạn qua ' + P.storeName() + ' — quản lý hoặc hủy trong cửa hàng.' : e && e.until ? 'Dùng đến hết ngày ' + dateVi(e.until) + '. Gia hạn bằng mã kích hoạt mới.' : '') + '</small></span></div>'
       : '<div class="prem-state">' + I('lock') + '<span><b>Đang dùng bản miễn phí</b><small>Miễn phí: 3 bài đầu của lộ trình mỗi môn ở mọi lớp, 2 truyện và 3 mẫu câu mỗi cấp, từ mới hằng ngày, Thử thách 60 giây, Sổ tay lỗi sai, Cẩm nang công thức.</small></span></div>';
     const btns = [];
-    if (!act) btns.push('<button class="btn accent" data-a="pwOpen">' + I('crown') + 'Xem các gói</button>');
+    if (!act || trial) btns.push('<button class="btn accent" data-a="pwOpen">' + I('crown') + 'Xem các gói</button>');
     if (store) { btns.push('<button class="btn ghost" data-a="pwRestoreParent">' + I('rotate-ccw') + 'Khôi phục giao dịch</button>'); if (act) btns.push('<button class="btn ghost" data-a="pwManage">' + I('settings') + 'Quản lý gói</button>'); }
     else btns.push('<button class="btn ' + (act ? 'ghost' : 'line') + '" data-a="pwOpenCode">' + I('key-round') + 'Nhập mã kích hoạt</button>');
     return '<section class="card stack prem-card"><h3>' + I('crown') + ' Gói Premium</h3>' + state + '<div class="row wrapr" style="gap:8px">' + btns.join('') + '</div></section>';
+  };
+  // ---------- thẻ Cài app lên máy (bản web mở trên trình duyệt) ----------
+  UI.installCard = () => {
+    if (!on() || P.channel() !== 'web' || P.standalone() || typeof location === 'undefined' || !/^https?:$/.test(location.protocol)) return '';
+    return '<section class="card stack"><h3>' + I('download') + ' Cài app lên máy</h3><p class="muted">Có biểu tượng ngôi sao trên màn hình như app thường, mở toàn màn hình, không cần vào trình duyệt. Dùng cho iPhone, iPad, Android và máy tính.</p><div class="row wrapr" style="gap:8px"><a class="btn line" href="cai-dat.html">' + I('download') + 'Hướng dẫn cài app</a></div></section>';
   };
 
   // ---------- khởi động ----------
@@ -13848,7 +13902,7 @@ lecture|The professor gave a lecture on history.|Giáo sư đã giảng một b�
     P.init();
     P.onChange(() => { if (UI.softRender) UI.softRender(); });
     P.fromLink().then(r => {
-      if (!r) return;
+      if (!r) { if (P.trialEnded && !UI.S.modal) UI.paywall({ ended: true }); return; }
       if (r.ok) { UI.openModal('prem', { step: 'done', longer: !!r.longer }); UI.confetti(); }
       else UI.toast(errMsg(r.why) || 'Mã kích hoạt không hợp lệ');
     });

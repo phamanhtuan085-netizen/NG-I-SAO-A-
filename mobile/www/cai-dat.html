@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#D71E28">
+<meta name="color-scheme" content="light dark">
+<meta name="format-detection" content="telephone=no">
+<meta name="description" content="Cài Ngôi Sao A+ lên iPhone, iPad, Android hoặc máy tính: biểu tượng ngôi sao trên màn hình, mở toàn màn hình, học được cả khi không có mạng.">
+<title>Cài app Ngôi Sao A+</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Ngôi Sao A+">
+<script>
+  // mở từ biểu tượng đã cài (toàn màn hình) → vào thẳng app
+  (function () {
+    var sa = window.navigator.standalone === true;
+    try { sa = sa || ['standalone', 'fullscreen', 'minimal-ui'].some(function (d) { return window.matchMedia('(display-mode: ' + d + ')').matches; }); } catch (e) { /* bỏ qua */ }
+    if (sa) location.replace('./');
+  })();
+</script>
+<style>
+@font-face {
+  font-family: 'Baloo 2';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url(fonts/baloo-2-vietnamese-700-normal.woff2) format('woff2');
+  unicode-range: U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB;
+}
+@font-face {
+  font-family: 'Baloo 2';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url(fonts/baloo-2-latin-ext-700-normal.woff2) format('woff2');
+  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Baloo 2';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url(fonts/baloo-2-latin-700-normal.woff2) format('woff2');
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+@font-face {
+  font-family: 'Baloo 2';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 800;
+  src: url(fonts/baloo-2-vietnamese-800-normal.woff2) format('woff2');
+  unicode-range: U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB;
+}
+@font-face {
+  font-family: 'Baloo 2';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 800;
+  src: url(fonts/baloo-2-latin-ext-800-normal.woff2) format('woff2');
+  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Baloo 2';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 800;
+  src: url(fonts/baloo-2-latin-800-normal.woff2) format('woff2');
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+@font-face {
+  font-family: 'Lexend';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url(fonts/lexend-vietnamese-400-normal.woff2) format('woff2');
+  unicode-range: U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB;
+}
+@font-face {
+  font-family: 'Lexend';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url(fonts/lexend-latin-ext-400-normal.woff2) format('woff2');
+  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lexend';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url(fonts/lexend-latin-400-normal.woff2) format('woff2');
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+@font-face {
+  font-family: 'Lexend';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 600;
+  src: url(fonts/lexend-vietnamese-600-normal.woff2) format('woff2');
+  unicode-range: U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB;
+}
+@font-face {
+  font-family: 'Lexend';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 600;
+  src: url(fonts/lexend-latin-ext-600-normal.woff2) format('woff2');
+  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lexend';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 600;
+  src: url(fonts/lexend-latin-600-normal.woff2) format('woff2');
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+:root {
+  --red: #D71E28; --red-deep: #A3121A; --red-soft: #FDECEC; --gold: #FFC93C; --gold-ink: #8A5A00; --gold-soft: #FFF4D6;
+  --ink: #1E2128; --ink-2: #4B4F5A; --ink-3: #6B7080; --line: #E2E2E8; --paper: #F6F6F8; --sheet: #FFFFFF;
+  --ok: #15803D; --ok-soft: #DCF5E5; --warn-soft: #FFF1E6; --warn-ink: #9A4A00; --focus: #2A78D6;
+  --display: 'Baloo 2', 'Lexend', system-ui, sans-serif; --body: 'Lexend', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --ink: #F2F2F5; --ink-2: #C9CAD2; --ink-3: #9DA0AC; --line: #34343D; --paper: #121214; --sheet: #1D1D23;
+    --red-soft: #3A1517; --gold-soft: #3B2E12; --gold-ink: #FFD978; --ok-soft: #10331F; --ok: #4ADE80; --warn-soft: #3A2412; --warn-ink: #FFB979; }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 400 16px/1.55 var(--body); }
+a { color: inherit; }
+button, .btn { font: inherit; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+/* ----- đầu trang: biểu tượng thật đặt trên "màn hình chính" ----- */
+.hero { position: relative; overflow: hidden; color: #fff; background: radial-gradient(120% 90% at 50% 0%, #E9343D 0%, var(--red) 46%, var(--red-deep) 100%);
+  padding: calc(28px + env(safe-area-inset-top, 0px)) 16px 30px; text-align: center; }
+.hero .grid { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(6, 64px); grid-auto-rows: 64px; gap: 26px 22px; justify-content: center; align-content: start;
+  padding-top: calc(14px + env(safe-area-inset-top, 0px)); opacity: .14; pointer-events: none;
+  -webkit-mask-image: linear-gradient(#000 0, #000 34%, transparent 62%); mask-image: linear-gradient(#000 0, #000 34%, transparent 62%); }
+.hero .grid i { display: block; border-radius: 16px; background: #fff; }
+.home { position: relative; display: inline-flex; flex-direction: column; align-items: center; gap: 8px; }
+.home img { width: 92px; height: 92px; border-radius: 22px; box-shadow: 0 10px 28px rgba(80, 0, 6, .38), 0 0 0 4px rgba(255, 255, 255, .22); }
+.home span { font: 600 14px/1 var(--body); letter-spacing: .01em; text-shadow: 0 1px 2px rgba(0, 0, 0, .35); }
+.hero h1 { position: relative; margin: 18px 0 4px; font: 800 clamp(28px, 7vw, 38px)/1.1 var(--display); letter-spacing: -.01em; }
+.hero p { position: relative; margin: 0 auto; max-width: 30em; font-size: 15px; opacity: .94; }
+
+main { max-width: 560px; margin: -14px auto 0; padding: 0 16px calc(32px + env(safe-area-inset-bottom, 0px)); position: relative; display: grid; gap: 14px; }
+.card { background: var(--sheet); border: 1px solid var(--line); border-radius: 20px; padding: 18px; }
+.card h2 { margin: 0 0 4px; font: 700 22px/1.2 var(--display); }
+.lead { margin: 0 0 14px; color: var(--ink-2); font-size: 15px; }
+.muted { color: var(--ink-3); font-size: 14px; }
+
+/* ----- thẻ mã (quà dùng thử / mở khóa) ----- */
+.code { display: grid; grid-template-columns: 44px 1fr; gap: 12px; align-items: start; border-radius: 20px; padding: 16px; border: 1px solid transparent; }
+.code.gift { background: var(--gold-soft); color: var(--gold-ink); }
+.code.prem { background: var(--ok-soft); color: var(--ok); }
+.code.bad { background: var(--warn-soft); color: var(--warn-ink); }
+.code .ic { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; background: rgba(255, 255, 255, .7); }
+@media (prefers-color-scheme: dark) { .code .ic { background: rgba(255, 255, 255, .08); } }
+.code b { display: block; font: 700 18px/1.25 var(--display); color: var(--ink); }
+.code p { margin: 2px 0 0; color: var(--ink-2); font-size: 14px; }
+.code p + p { margin-top: 6px; }
+.code .copy { margin-top: 8px; background: none; border: 0; padding: 4px 0; color: inherit; font-weight: 600; font-size: 14px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+
+/* ----- chọn loại máy ----- */
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 4px; border-radius: 14px; background: var(--paper); border: 1px solid var(--line); margin-bottom: 16px; }
+.seg button { border: 0; border-radius: 10px; padding: 9px 6px; background: none; color: var(--ink-2); font-weight: 600; font-size: 14px; cursor: pointer; }
+.seg button[aria-selected="true"] { background: var(--sheet); color: var(--ink); box-shadow: 0 1px 3px rgba(0, 0, 0, .12); }
+
+/* ----- các bước ----- */
+ol.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; counter-reset: s; }
+ol.steps li { counter-increment: s; display: grid; grid-template-columns: 32px 1fr; gap: 12px; align-items: start; }
+ol.steps li::before { content: counter(s); width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--red-soft); color: var(--red); font: 800 16px/1 var(--display); }
+@media (prefers-color-scheme: dark) { ol.steps li::before { color: #FF8A8F; } }
+ol.steps b { font-weight: 600; }
+.glyph { display: inline-grid; place-items: center; width: 26px; height: 26px; margin: 0 2px; vertical-align: -7px; border-radius: 7px; background: var(--paper); border: 1px solid var(--line); color: var(--focus); }
+.glyph svg { width: 16px; height: 16px; }
+.note { margin: 14px 0 0; padding: 12px 14px; border-radius: 14px; background: var(--warn-soft); color: var(--warn-ink); font-size: 14px; }
+.note b { color: var(--ink); }
+.done { margin: 0 0 14px; padding: 12px 14px; border-radius: 14px; background: var(--ok-soft); color: var(--ok); font-weight: 600; }
+
+/* ----- nút ----- */
+.btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 54px; padding: 12px 18px; border-radius: 16px; border: 0;
+  background: var(--red); color: #fff; font: 700 18px/1.2 var(--display); text-decoration: none; cursor: pointer; box-shadow: 0 6px 16px rgba(215, 30, 40, .28); }
+.btn:active { transform: translateY(1px); background: var(--red-deep); }
+.btn svg { width: 22px; height: 22px; flex: none; }
+.btn.line { background: transparent; color: var(--ink); border: 2px solid var(--line); box-shadow: none; font-size: 16px; min-height: 48px; }
+.stack { display: grid; gap: 10px; margin-top: 16px; }
+.alt { margin-top: 18px; padding-top: 16px; border-top: 1px dashed var(--line); }
+.alt h3 { margin: 0 0 4px; font: 700 17px/1.3 var(--display); }
+.alt p { margin: 0 0 10px; color: var(--ink-2); font-size: 14px; }
+footer { text-align: center; color: var(--ink-3); font-size: 14px; display: grid; gap: 6px; }
+footer a { color: var(--ink-2); text-underline-offset: 3px; }
+[hidden] { display: none !important; }
+@media (prefers-reduced-motion: no-preference) { .home img { animation: land .7s cubic-bezier(.2, .9, .3, 1.25) both; } @keyframes land { from { transform: translateY(-14px) scale(.86); opacity: 0; } } }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="grid" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="home"><img src="icons/icon-192.png" alt="" width="92" height="92"><span>Ngôi Sao A+</span></div>
+  <h1>Cài Ngôi Sao A+ lên máy</h1>
+  <p>Cài xong, biểu tượng ngôi sao nằm trên màn hình như mọi app khác. Con bấm vào là học, toàn màn hình, học được cả khi không có mạng.</p>
+</header>
+
+<main>
+  <section id="code" class="code" hidden aria-live="polite"></section>
+
+  <section class="card" aria-labelledby="h-how">
+    <h2 id="h-how">Cài trong 1 phút</h2>
+    <p class="lead" id="for"></p>
+    <div class="seg" role="tablist" aria-label="Loại máy">
+      <button role="tab" data-dev="ios" aria-selected="false">iPhone, iPad</button>
+      <button role="tab" data-dev="android" aria-selected="false">Android</button>
+      <button role="tab" data-dev="desktop" aria-selected="false">Máy tính</button>
+    </div>
+    <div id="steps"></div>
+  </section>
+
+  <footer>
+    <a href="../">Trang giới thiệu Ngôi Sao A+</a>
+  </footer>
+</main>
+
+<script>
+(function () {
+  'use strict';
+  var PUB = {"kty":"EC","crv":"P-256","x":"fAVzO9PcCMY1VumimOLTirGd9PYgu0aH1BGxvvZYc-0","y":"RT9m8Ysk6PRYRP34xVnhHydI_y-DcMYRLppxiN41nJo"};
+  var APK = 'https://github.com/phamanhtuan085-netizen/NG-I-SAO-A-/releases/latest/download/NgoiSaoAPlus.apk';
+  var EPOCH = Date.UTC(2024, 0, 1), DAY = 86400000, VN = 7 * 3600000;
+  var $ = function (id) { return document.getElementById(id); };
+  var ua = navigator.userAgent || '';
+  var iPadOS = /Macintosh/.test(ua) && (navigator.maxTouchPoints || 0) > 1;
+  var ios = /iPhone|iPad|iPod/.test(ua) || iPadOS, ipad = /iPad/.test(ua) || iPadOS;
+  var android = /Android/i.test(ua);
+  var inApp = (/Zalo/i.test(ua) && 'Zalo') || (/FBAN|FBAV|FB_IAB|FBIOS/.test(ua) && 'Facebook') || (/Messenger/i.test(ua) && 'Messenger') || (/Instagram/i.test(ua) && 'Instagram') ||
+    (/musical_ly|BytedanceWebview|TikTok/i.test(ua) && 'TikTok') || (/Line\//.test(ua) && 'LINE') || (/MicroMessenger/i.test(ua) && 'WeChat') || '';
+  var iosOther = ios && !inApp && /CriOS|FxiOS|EdgiOS|OPiOS|GSA\//.test(ua) ? (/CriOS/.test(ua) ? 'Chrome' : /FxiOS/.test(ua) ? 'Firefox' : /EdgiOS/.test(ua) ? 'Edge' : 'trình duyệt này') : '';
+  var macSafari = !ios && /Macintosh/.test(ua) && /Safari\//.test(ua) && !/Chrome|Chromium|Edg\//.test(ua);
+  var firefox = !ios && /Firefox\//.test(ua);
+  var edge = /Edg\//.test(ua);
+  var dev = ios ? 'ios' : android ? 'android' : 'desktop';
+  var auto = dev;
+  var deferred = null, installed = false;
+
+  // ---------- mã kích hoạt mang theo link (#kh= hoặc ?kh=) → cookie để app đã cài nhận được ----------
+  var dir = location.pathname.replace(/[^/]*$/, '') || '/';
+  var readCookie = function () { var m = /(?:^|;\s*)nsa_kh=([A-Za-z0-9._-]+)/.exec(document.cookie || ''); return m ? m[1] : ''; };
+  var setCookie = function (c) { document.cookie = 'nsa_kh=' + c + '; path=' + dir + '; max-age=' + 7 * 86400 + '; SameSite=Lax' + (location.protocol === 'https:' ? '; Secure' : ''); };
+  var grab = function (s) { var m = /[#?&]kh=([A-Za-z0-9._\-\s%]+)/.exec(s || ''); if (!m) return ''; var t = m[1]; try { t = decodeURIComponent(t); } catch (e) { /* giữ nguyên */ } t = t.replace(/\s+/g, ''); var x = /NSA1\.[A-Za-z0-9_-]{11}\.[A-Za-z0-9_-]{86}/.exec(t); return x ? x[0] : t; };
+  var fromUrl = grab(location.hash) || grab(location.search);
+  if (fromUrl) { try { history.replaceState(null, '', location.pathname); } catch (e) { /* bỏ qua */ } }
+  var code = fromUrl || readCookie();
+
+  var b64uDec = function (s) { s = String(s).replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; var b = atob(s), u = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; };
+  var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+  var dateVi = function (ts) { var d = new Date(ts + VN); return pad(d.getUTCDate()) + '/' + pad(d.getUTCMonth() + 1) + '/' + d.getUTCFullYear(); };
+  var PLAN = { 1: 'Gói Tuần', 2: 'Gói Tháng', 3: 'Gói Năm' };
+  var parse = function (s) {
+    var m = /^NSA1\.([A-Za-z0-9_-]{11})\.([A-Za-z0-9_-]{86})$/.exec(s || '');
+    if (!m) return null;
+    var p; try { p = b64uDec(m[1]); } catch (e) { return null; }
+    if (p.length !== 8) return null;
+    var until = EPOCH + (p[2] * 256 + p[3] + 1) * DAY - VN - 1, c = { msg: 'NSA1.' + m[1], sig: m[2], until: until };
+    if (p[0] === 1 && PLAN[p[1]]) { c.plan = PLAN[p[1]]; return c; }
+    if (p[0] === 2 && p[1] >= 1) { c.trial = true; c.days = p[1]; return c; }
+    return null;
+  };
+  var verify = function (s) {
+    var c = parse(s);
+    if (!c) return Promise.resolve({ ok: false });
+    var S = window.crypto && window.crypto.subtle;
+    if (!S || typeof TextEncoder === 'undefined') return Promise.resolve({ ok: true, c: c, unchecked: true });
+    return S.importKey('jwk', PUB, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['verify'])
+      .then(function (k) { return S.verify({ name: 'ECDSA', hash: 'SHA-256' }, k, b64uDec(c.sig), new TextEncoder().encode(c.msg)); })
+      .then(function (good) { return { ok: !!good, c: c }; }, function () { return { ok: true, c: c, unchecked: true }; });
+  };
+  var I = {
+    gift: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7M7.5 8a2.5 2.5 0 0 1 0-5C10 3 12 8 12 8s2-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg>',
+    crown: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.6 3.3a.5.5 0 0 1 .9 0l2.9 5.6a1 1 0 0 0 1.5.3l4.3-3.7a.5.5 0 0 1 .8.5l-2.8 10.2a1 1 0 0 1-1 .8H5.8a1 1 0 0 1-1-.8L2 6a.5.5 0 0 1 .8-.5l4.3 3.7a1 1 0 0 0 1.5-.3z"/><path d="M5 21h14"/></svg>',
+    alert: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>',
+    share: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>',
+    addsq: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 8v8M8 12h8"/></svg>',
+    dots: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>',
+    hdots: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>',
+    inst: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M12 7v6M9 10l3 3 3-3M8 21h8M12 17v4"/></svg>',
+    down: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M5 21h14"/></svg>',
+    play: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4l14 8-14 8z"/></svg>',
+    ext: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>'
+  };
+  var g = function (name) { return '<span class="glyph">' + I[name] + '</span>'; };
+  var copyText = function (t, btn) {
+    var done = function () { if (!btn) return; var o = btn.textContent; btn.textContent = 'Đã chép ✓'; setTimeout(function () { btn.textContent = o; }, 1600); };
+    var fallback = function () { var ta = document.createElement('textarea'); ta.value = t; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch (e) { /* bỏ qua */ } ta.remove(); done(); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done, fallback); else fallback();
+  };
+
+  var codeOk = false;
+  var showCode = function (r) {
+    var el = $('code');
+    if (!code) { el.hidden = true; return; }
+    el.hidden = false;
+    var c = r && r.c, now = Date.now();
+    if (!r || !r.ok || !c) {
+      el.className = 'code bad';
+      el.innerHTML = '<span class="ic">' + I.alert + '</span><div><b>Link kích hoạt chưa đúng</b><p>Vẫn cài app được bình thường; phần Premium chưa mở. Hãy nhờ người gửi link kiểm tra lại.</p></div>';
+      return;
+    }
+    if (c.until <= now && !c.trial) {
+      el.className = 'code bad';
+      el.innerHTML = '<span class="ic">' + I.alert + '</span><div><b>Mã này đã hết hạn</b><p>Hết hạn từ ngày ' + dateVi(c.until) + '. Vẫn cài app được; muốn mở trọn bộ, hãy mua gói mới.</p></div>';
+      return;
+    }
+    if (c.trial && c.until <= now) {
+      el.className = 'code bad';
+      el.innerHTML = '<span class="ic">' + I.alert + '</span><div><b>Link dùng thử đã hết hạn nhận</b><p>Link này nhận được đến hết ngày ' + dateVi(c.until) + '. Vẫn cài app được và học phần miễn phí.</p></div>';
+      return;
+    }
+    codeOk = true;
+    setCookie(code);
+    var extra = '<button class="copy" type="button" id="copy-code">Chép mã kích hoạt</button>';
+    if (c.trial) {
+      el.className = 'code gift';
+      el.innerHTML = '<span class="ic">' + I.gift + '</span><div><b>Quà tặng: dùng thử ' + c.days + ' ngày</b><p>Mở trọn bộ Premium ' + c.days + ' ngày, tính từ lần đầu mở app trên máy. Nhận trước hết ngày ' + dateVi(c.until) + '.</p><p>Hết hạn dùng thử, bố mẹ chọn gói để con học tiếp; phần miễn phí vẫn dùng bình thường.</p>' + extra + '</div>';
+    } else {
+      el.className = 'code prem';
+      el.innerHTML = '<span class="ic">' + I.crown + '</span><div><b>Link mở trọn bộ Premium</b><p>' + c.plan + ', dùng đến hết ngày ' + dateVi(c.until) + '. Premium tự mở khi bạn mở app vừa cài trên máy này.</p>' + extra + '</div>';
+    }
+    var b = $('copy-code'); if (b) b.addEventListener('click', function () { copyText(code, b); });
+    render();
+  };
+
+  // ---------- hướng dẫn theo loại máy ----------
+  var openWebBtn = '<a class="btn line" href="./">' + I.play + 'Mở app trên trình duyệt</a>';
+  var afterApk = function () { return codeOk ? '<p class="muted" style="margin:10px 0 0">Cài APK xong: mở app → <b>Góc phụ huynh → Gói Premium → Nhập mã kích hoạt</b> → dán mã (đã chép sẵn khi bấm tải).</p>' : ''; };
+  var apkBlock = function () {
+    return '<div class="alt"><h3>Cách khác: tải tệp cài đặt APK</h3><p>Bản cài đặt Android đầy đủ, khoảng 29 MB. Máy có thể hỏi cho phép cài ứng dụng không rõ nguồn: bấm <b>Cài đặt</b> → <b>Cho phép</b>.</p>' +
+      '<a class="btn line" id="apk" href="' + APK + '">' + I.down + 'Tải tệp APK</a>' + afterApk() + '</div>';
+  };
+  var views = {
+    ios: function () {
+      var where = ipad ? 'ở góc trên bên phải' : 'ở thanh dưới cùng';
+      var warn = inApp
+        ? '<div class="note">Bạn đang mở link trong <b>' + inApp + '</b>, chỗ này không cài app được. Bấm ' + g('hdots') + ' hoặc ' + g('ext') + ' ở góc màn hình, chọn <b>Mở trong Safari</b> (hoặc <b>Mở bằng trình duyệt</b>), rồi làm 3 bước dưới.' +
+          '<div class="stack"><button class="btn line" type="button" id="copy-link">Chép link để dán vào Safari</button></div></div>'
+        : iosOther ? '<div class="note">Bạn đang dùng <b>' + iosOther + '</b>. Cách chắc nhất là mở link này bằng <b>Safari</b>; ' + iosOther + ' bản mới cũng có nút ' + g('share') + ' và mục <b>Thêm vào MH chính</b>.</div>' : '';
+      return (installed ? '' : warn) + '<ol class="steps">' +
+        '<li><span>Bấm nút <b>Chia sẻ</b> ' + g('share') + ' ' + where + ' của Safari.</span></li>' +
+        '<li><span>Kéo xuống, chọn <b>Thêm vào MH chính</b> ' + g('addsq') + '.</span></li>' +
+        '<li><span>Bấm <b>Thêm</b>. Biểu tượng <b>Ngôi Sao A+</b> hiện trên màn hình chính; mở app từ biểu tượng đó.</span></li></ol>' +
+        (codeOk ? '<p class="muted" style="margin:12px 0 0">Mở app từ biểu tượng mà chưa thấy Premium: vào <b>Góc phụ huynh → Gói Premium → Nhập mã kích hoạt</b> → dán mã (bấm “Chép mã kích hoạt” ở trên).</p>' : '') +
+        '<div class="stack">' + openWebBtn + '</div>';
+    },
+    android: function () {
+      var top = '';
+      if (installed) top = '<p class="done">Đã cài xong. Mở Ngôi Sao A+ từ biểu tượng ngôi sao trên màn hình chính.</p>';
+      else if (inApp) {
+        var intent = 'intent://' + location.host + location.pathname + (codeOk ? '?kh=' + code : '') + '#Intent;scheme=https;package=com.android.chrome;end';
+        top = '<div class="note">Bạn đang mở link trong <b>' + inApp + '</b>, chỗ này không cài app được. Mở bằng Chrome để cài:' +
+          '<div class="stack"><a class="btn" href="' + intent + '">' + I.ext + 'Mở bằng Chrome</a></div><p style="margin:8px 0 0">Không mở được: bấm ' + g('dots') + ' ở góc trên, chọn <b>Mở bằng trình duyệt</b>.</p></div>';
+      }
+      var steps = deferred && !installed
+        ? '<div class="stack"><button class="btn" type="button" id="install">' + I.down + 'Cài app Ngôi Sao A+</button></div><p class="muted" style="margin:10px 0 0">Bấm nút trên, rồi bấm <b>Cài đặt</b> trong hộp hỏi của máy. Biểu tượng ngôi sao hiện trên màn hình chính.</p>'
+        : installed ? '' : '<ol class="steps">' +
+          '<li><span>Mở link này bằng <b>Chrome</b>, bấm ' + g('dots') + ' ở góc trên bên phải.</span></li>' +
+          '<li><span>Chọn <b>Cài đặt ứng dụng</b> (hoặc <b>Thêm vào màn hình chính</b>).</span></li>' +
+          '<li><span>Bấm <b>Cài đặt</b>. Biểu tượng <b>Ngôi Sao A+</b> hiện trên màn hình chính.</span></li></ol>';
+      return top + steps + apkBlock() + '<div class="stack">' + openWebBtn + '</div>';
+    },
+    desktop: function () {
+      if (installed) return '<p class="done">Đã cài xong. Mở Ngôi Sao A+ từ biểu tượng trên màn hình hoặc thanh tác vụ.</p><div class="stack">' + openWebBtn + '</div>';
+      if (deferred) return '<div class="stack"><button class="btn" type="button" id="install">' + I.down + 'Cài app vào máy tính</button></div><p class="muted" style="margin:10px 0 0">Bấm nút trên, rồi bấm <b>Cài đặt</b>. App mở trong cửa sổ riêng và có biểu tượng trên màn hình, thanh tác vụ.</p><div class="stack">' + openWebBtn + '</div>';
+      var steps;
+      if (macSafari) steps = '<ol class="steps"><li><span>Trên thanh menu, chọn <b>Tệp</b> (File).</span></li><li><span>Chọn <b>Thêm vào Dock</b> (Add to Dock), cần macOS Sonoma trở lên.</span></li><li><span>Bấm <b>Thêm</b>. Biểu tượng <b>Ngôi Sao A+</b> nằm trên Dock.</span></li></ol>';
+      else if (firefox) steps = '<div class="note">Firefox chưa cài được app web. Hãy mở link này bằng <b>Chrome</b> hoặc <b>Edge</b> rồi bấm <b>Cài app</b>.</div><div class="stack"><button class="btn line" type="button" id="copy-link">Chép link</button></div>';
+      else if (edge) steps = '<ol class="steps"><li><span>Bấm biểu tượng <b>Cài đặt</b> ' + g('inst') + ' ở cuối thanh địa chỉ (hoặc ' + g('hdots') + ' → <b>Ứng dụng</b> → <b>Cài đặt trang web này dưới dạng ứng dụng</b>).</span></li><li><span>Bấm <b>Cài đặt</b>.</span></li><li><span>Biểu tượng <b>Ngôi Sao A+</b> có trên màn hình và thanh tác vụ; mở app từ đó.</span></li></ol>';
+      else steps = '<ol class="steps"><li><span>Mở link này bằng <b>Chrome</b> hoặc <b>Edge</b>.</span></li><li><span>Bấm biểu tượng <b>Cài đặt</b> ' + g('inst') + ' ở cuối thanh địa chỉ (hoặc bấm ' + g('dots') + ' rồi tìm mục <b>Cài đặt Ngôi Sao A+</b>).</span></li><li><span>Bấm <b>Cài đặt</b>. Biểu tượng <b>Ngôi Sao A+</b> có trên màn hình và thanh tác vụ.</span></li></ol>';
+      return steps + '<div class="stack">' + openWebBtn + '</div>';
+    }
+  };
+  var LABEL = { ios: ipad ? 'Máy này: iPad' : 'Máy này: iPhone', android: 'Máy này: Android', desktop: 'Máy này: máy tính' };
+  var render = function () {
+    document.querySelectorAll('.seg button').forEach(function (b) { b.setAttribute('aria-selected', String(b.getAttribute('data-dev') === dev)); });
+    $('for').textContent = dev === auto ? LABEL[auto] + '. Cài một lần, dùng như app thường.' : 'Hướng dẫn cho máy khác — mở link này trên máy đó để cài.';
+    $('steps').innerHTML = views[dev]();
+    var ib = $('install');
+    if (ib) ib.addEventListener('click', function () {
+      if (!deferred) return;
+      deferred.prompt();
+      deferred.userChoice.then(function (c) { if (c && c.outcome === 'accepted') installed = true; deferred = null; render(); }, function () { deferred = null; render(); });
+    });
+    var cl = $('copy-link');
+    if (cl) cl.addEventListener('click', function () { copyText(location.origin + location.pathname + (codeOk ? '#kh=' + code : ''), cl); });
+    var ap = $('apk');
+    if (ap && codeOk) ap.addEventListener('click', function () { copyText(code, null); });
+  };
+  document.querySelectorAll('.seg button').forEach(function (b) { b.addEventListener('click', function () { dev = b.getAttribute('data-dev'); render(); }); });
+  window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); deferred = e; render(); });
+  window.addEventListener('appinstalled', function () { installed = true; deferred = null; render(); });
+  render();
+  if (code) verify(code).then(showCode); else showCode(null);
+  // bộ nhớ ngoại tuyến của app: đăng ký sẵn để máy cho cài và app mở nhanh, chạy cả khi không có mạng
+  if ('serviceWorker' in navigator && location.protocol === 'https:') window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+})();
+</script>
+</body>
+</html>

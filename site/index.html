@@ -148,6 +148,9 @@ section > p.lead { margin-top: 12px; }
 .dev ol { margin: 12px 0 18px; padding-left: 22px; font-size: .96rem; }
 .dev ol li { margin: 4px 0; }
 .dev .btn { width: 100%; justify-content: center; }
+.dev .btn + .btn { margin-top: 10px; }
+.one-link { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-top: 18px; }
+.one-link span { font-size: .92rem; color: var(--ink-3); overflow-wrap: anywhere; }
 .soon { margin-top: 18px; font-size: .95rem; color: var(--ink-3); }
 
 /* video giới thiệu */
@@ -219,9 +222,9 @@ footer { padding: 36px 0 48px; border-top: 2px dashed var(--line-2); margin-top:
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4l14 8-14 8z"/></svg>
             Học thử ngay
           </a>
-          <a class="btn" href="#cai-dat">
+          <a class="btn" href="app/cai-dat.html">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M5 21h14"/></svg>
-            Cài lên điện thoại
+            Cài app về máy
           </a>
         </div>
         <p class="note">Tải miễn phí, không cần tài khoản, không quảng cáo. Mở bằng trình duyệt là dùng được.</p>
@@ -358,34 +361,37 @@ footer { padding: 36px 0 48px; border-top: 2px dashed var(--line-2); margin-top:
     </section>
 
     <section id="cai-dat" aria-labelledby="h-install">
-      <h2 id="h-install">Cài Ngôi Sao A+ lên điện thoại</h2>
-      <p class="lead">Cài xong, biểu tượng Ngôi Sao A+ nằm trên màn hình chính như mọi app khác, mở ra học được cả khi không có mạng.</p>
+      <h2 id="h-install">Cài Ngôi Sao A+ lên máy</h2>
+      <p class="lead">Một link cài cho mọi máy: iPhone, iPad, Android và máy tính. Mở link, làm theo 1–3 bước trên màn hình; cài xong, biểu tượng ngôi sao nằm trên màn hình như mọi app khác, mở ra học được cả khi không có mạng.</p>
+      <p class="one-link"><a class="btn primary" href="app/cai-dat.html">Mở link cài app</a> <span>phamanhtuan085-netizen.github.io/NG-I-SAO-A-/app/cai-dat.html</span></p>
       <div class="install">
         <div class="dev">
           <h3>iPhone, iPad</h3>
           <ol>
-            <li>Mở trang này bằng <b>Safari</b>.</li>
-            <li>Bấm <b>Học thử ngay</b>.</li>
-            <li>Bấm nút <b>Chia sẻ</b> (ô vuông có mũi tên lên) rồi chọn <b>Thêm vào MH chính</b>.</li>
+            <li>Mở link cài app bằng <b>Safari</b>.</li>
+            <li>Bấm nút <b>Chia sẻ</b> (ô vuông có mũi tên lên), chọn <b>Thêm vào MH chính</b>.</li>
+            <li>Bấm <b>Thêm</b>, rồi mở app từ biểu tượng ngôi sao.</li>
           </ol>
-          <a class="btn primary" href="app/">Mở app</a>
+          <a class="btn primary" href="app/cai-dat.html">Cài trên iPhone, iPad</a>
         </div>
         <div class="dev">
           <h3>Android</h3>
           <ol>
-            <li>Bấm <b>Tải file cài đặt</b> bên dưới.</li>
-            <li>Mở file vừa tải, cho phép <b>Cài ứng dụng không rõ nguồn</b> nếu máy hỏi.</li>
-            <li>Bấm <b>Cài đặt</b>.</li>
+            <li>Mở link cài app bằng <b>Chrome</b>.</li>
+            <li>Bấm <b>Cài app Ngôi Sao A+</b>, rồi bấm <b>Cài đặt</b>.</li>
+            <li>Mở app từ biểu tượng ngôi sao. Muốn dùng tệp APK: bấm <b>Tải tệp APK</b>, cho phép cài nếu máy hỏi.</li>
           </ol>
-          <a class="btn primary" href="https://github.com/phamanhtuan085-netizen/NG-I-SAO-A-/releases/latest/download/NgoiSaoAPlus.apk">Tải file cài đặt (APK)</a>
+          <a class="btn primary" href="app/cai-dat.html">Cài trên Android</a>
+          <a class="btn" href="https://github.com/phamanhtuan085-netizen/NG-I-SAO-A-/releases/latest/download/NgoiSaoAPlus.apk">Tải tệp APK</a>
         </div>
         <div class="dev">
-          <h3>Máy tính, máy tính bảng</h3>
+          <h3>Máy tính</h3>
           <ol>
-            <li>Mở <b>Học thử ngay</b> bằng Chrome, Edge hoặc Safari.</li>
-            <li>Với Chrome, Edge: bấm biểu tượng <b>Cài đặt</b> ở thanh địa chỉ để có app riêng.</li>
+            <li>Mở link cài app bằng <b>Chrome</b> hoặc <b>Edge</b>, bấm <b>Cài app vào máy tính</b>.</li>
+            <li>Máy Mac dùng Safari: <b>Tệp → Thêm vào Dock</b>.</li>
+            <li>Không muốn cài: bấm <b>Học thử ngay</b> để học trên trình duyệt.</li>
           </ol>
-          <a class="btn" href="app/">Mở trên trình duyệt</a>
+          <a class="btn primary" href="app/cai-dat.html">Cài trên máy tính</a>
         </div>
       </div>
       <p class="soon">Ngôi Sao A+ đang được hoàn thiện để lên App Store và Google Play.</p>
