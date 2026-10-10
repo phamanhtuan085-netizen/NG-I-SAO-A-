@@ -8,5 +8,10 @@
   },
   "links": {
     "install": "https://phamanhtuan085-netizen.github.io/NG-I-SAO-A-/app/cai-dat.html"
+  },
+  "prices": {
+    "week": 150000,
+    "month": 250000,
+    "year": 599000
   }
 }

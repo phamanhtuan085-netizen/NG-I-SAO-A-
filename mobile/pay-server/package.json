@@ -1,0 +1,7 @@
+{
+  "name": "ngoisao-pay",
+  "private": true,
+  "type": "module",
+  "description": "Máy chủ thanh toán tự động của Ngôi Sao A+ (Cloudflare Workers + SePay). Kiểm thử: node test/worker.test.mjs",
+  "scripts": { "test": "node test/worker.test.mjs" }
+}

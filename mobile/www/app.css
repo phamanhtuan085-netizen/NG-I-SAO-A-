@@ -408,6 +408,7 @@ small { font-size: .82em; color: var(--ink-3); }
 
 /* ---------- home ---------- */
 .mission { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; align-items: center; }
+.mission .tag { white-space: normal; max-width: 100%; line-height: 1.3; }
 .ring { width: 96px; height: 96px; position: relative; flex: none; }
 .ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
 .ring .bg { stroke: var(--paper-2); }
@@ -473,6 +474,7 @@ small { font-size: .82em; color: var(--ink-3); }
 .qwrap { padding-top: 18px; }
 .qcard { position: relative; border-radius: 20px; padding: 20px 18px 20px; min-height: 150px; display: flex; flex-direction: column; gap: 14px; background: var(--sheet); border: 1px solid var(--card-line); box-shadow: var(--card-shadow); }
 .qmeta { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.qmeta .tag { white-space: normal; max-width: 100%; line-height: 1.3; }
 .qtext { font-size: 1.28rem; font-weight: 600; line-height: 1.45; overflow-wrap: anywhere; }
 .qtext .big { font-family: var(--font-display); font-size: clamp(1.7rem, 7vw, 2.3rem); font-weight: 700; letter-spacing: .01em; line-height: 1.3; display: inline-block; margin-top: 4px; }
 .qtext small { font-size: .78em; color: var(--ink-3); font-weight: 500; }
@@ -504,7 +506,7 @@ small { font-size: .82em; color: var(--ink-3); }
 .shape-one svg.shape { width: 160px; height: 120px; }
 .shape-row { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
 .shape-row svg.shape { width: 64px; height: 48px; }
-svg.clock { width: 180px; height: 180px; }
+svg.clock { width: 180px; height: auto; max-width: 100%; aspect-ratio: 1; }
 svg.clock .face { fill: var(--sheet); stroke: var(--ink); stroke-width: 2.5; }
 svg.clock .ticks line { stroke: var(--ink-3); stroke-width: .8; }
 svg.clock .ticks line.tk5 { stroke: var(--ink); stroke-width: 1.6; }
@@ -992,6 +994,8 @@ body::before { content: ""; position: fixed; top: 0; left: 0; right: 0; height: 
 .board .bd-opts { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 9.5em), 1fr)); gap: .45em; }
 .board .bd-opt { display: flex; align-items: center; gap: .5em; background: #fff; border: 2px solid var(--line); border-radius: 12px; padding: .35em .6em; font-weight: 600; }
 .board .bd-opt b { display: grid; place-items: center; width: 1.6em; height: 1.6em; border-radius: 8px; background: var(--paper-2); font-size: .85em; flex: none; }
+.board .bd-opt > span { min-width: 0; }
+.board .bd-opt svg.clock { width: 100%; max-width: 180px; height: auto; aspect-ratio: 1; display: block; }
 .board .bd-opt.ok { border-color: var(--ok); background: var(--ok-soft); }
 .board .bd-opt.ok b { background: var(--ok); color: #fff; }
 .board .bd-opt.dim { opacity: .45; }
@@ -1756,6 +1760,22 @@ body.art .hero .brand-name .ap { color: var(--brand); }
 .pw-bank-dl .linkbtn { display: inline-flex; align-items: center; gap: 3px; padding: 0 2px; font-size: .8rem; }
 .pw-bank-dl .linkbtn .ic { width: 13px; height: 13px; }
 .pw-bank ol { margin: 0; padding-left: 20px; display: grid; gap: 4px; color: var(--ink-2); font-size: .84rem; }
+/* Khu vực chủ app: sổ đơn chuyển khoản tự động */
+.ow-pay .ow-row-h { cursor: default; align-items: center; gap: 8px; }
+.ow-pay .ow-row-h b { overflow-wrap: anywhere; }
+.ow-pay.warn { background: var(--warn-soft); border-radius: 12px; }
+/* chuyển khoản tự động: dòng trạng thái chờ tiền về */
+.pw-bank.auto { border: 2px solid var(--ok-soft); }
+.pw-bank.auto .pw-bank-h .ic { color: var(--ok); }
+.pw-wait { display: flex; align-items: flex-start; gap: 10px; background: var(--sheet); border: 1px dashed var(--grid-2); border-radius: 12px; padding: 10px 12px; line-height: 1.35; }
+.pw-wait > .spin { flex: none; margin-top: 2px; width: 18px; height: 18px; border-radius: 50%; border: 2.5px solid var(--ok); border-right-color: transparent; animation: pw-spin .8s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .pw-wait > .spin { animation-duration: 2.4s; } }
+.pw-wait b { display: block; font-size: .92rem; }
+.pw-wait small { display: block; color: var(--ink-3); font-size: .8rem; }
+.pw-wait .pw-err { flex: 1; }
+.pw-paidcode { width: 100%; text-align: left; background: var(--paper); border-radius: 12px; padding: 8px 12px; font-size: .86rem; }
+.pw-paidcode summary { cursor: pointer; font-weight: 700; color: var(--eng-ink); }
+.pw-paidcode code { display: block; margin: 6px 0; font-size: .72rem; line-height: 1.35; overflow-wrap: anywhere; word-break: break-all; background: var(--sheet); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; user-select: all; }
 .pw-close { margin-top: -4px; }
 .pw-code-step { display: flex; flex-direction: column; gap: 10px; }
 .pw-code-step h2 { display: flex; align-items: center; gap: 8px; }

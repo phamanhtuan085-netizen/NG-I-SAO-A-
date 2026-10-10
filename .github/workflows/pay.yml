@@ -1,0 +1,39 @@
+# Máy chủ thanh toán tự động (Cloudflare Workers + SePay): khách chuyển khoản xong là app tự mở gói.
+# Tự chạy khi đổi mã máy chủ (mobile/pay-server/) hoặc bảng giá (mobile/store-config.json); chạy tay: tab Actions → workflow này → Run workflow.
+# Cần GitHub Secrets (Settings → Secrets and variables → Actions → New repository secret):
+#   CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID   tài khoản Cloudflare miễn phí của chủ app
+#   PAY_SIGN_KEY                                  dòng trong tệp PAY_SIGN_KEY.txt (gói bảo mật)
+#   SEPAY_SECRET                                  khóa bí mật webhook SePay (kiểu xác thực HMAC-SHA256)
+# Chưa có khóa Cloudflare thì bỏ qua, không báo lỗi. Địa chỉ máy chủ và địa chỉ webhook hiện ở phần Summary / Annotations của lần chạy.
+name: Thanh toán tự động – máy chủ
+on:
+  push:
+    branches: [main]
+    paths: ['mobile/pay-server/**', 'mobile/store-config.json', '.github/workflows/pay.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: pay-deploy
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Kiểm thử máy chủ
+        working-directory: mobile/pay-server
+        run: node test/worker.test.mjs
+      - name: Triển khai lên Cloudflare
+        working-directory: mobile/pay-server
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          PAY_SIGN_KEY: ${{ secrets.PAY_SIGN_KEY }}
+          SEPAY_SECRET: ${{ secrets.SEPAY_SECRET }}
+          SEPAY_APIKEY: ${{ secrets.SEPAY_APIKEY }}
+        run: node deploy.mjs

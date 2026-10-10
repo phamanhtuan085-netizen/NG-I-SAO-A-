@@ -9198,7 +9198,7 @@ lecture|The professor gave a lecture on history.|Giáo sư đã giảng một b�
 
   // ---------- chuyển khoản ngân hàng (bản web / APK / app cài từ link): mã VietQR theo chuẩn NAPAS 247 ----------
   // store-config.json → "bank": { "bankName": "BIDV", "bin": "970418", "account": "…", "name": "PHAM ANH TUAN" }
-  P.bank = () => { const c = CFG(), b = c && c.bank; return b && /^\d{6}$/.test(b.bin || '') && /^\d{4,19}$/.test(b.account || '') ? b : null; };
+  P.bank = () => { const c = CFG(), b = c && c.bank; return b && /^\d{6}$/.test(b.bin || '') && /^[A-Za-z0-9]{4,19}$/.test(b.account || '') ? b : null; }; // tài khoản ảo (VA) có thể có chữ
   const tlv = (id, v) => id + (v.length < 10 ? '0' : '') + v.length + v;
   P.crc16 = s => { let c = 0xFFFF; for (let i = 0; i < s.length; i++) { c ^= s.charCodeAt(i) << 8; for (let j = 0; j < 8; j++) c = c & 0x8000 ? ((c << 1) ^ 0x1021) & 0xFFFF : (c << 1) & 0xFFFF; } return ('000' + c.toString(16).toUpperCase()).slice(-4); };
   // nội dung chuyển khoản: NSA <GÓI> <SĐT của khách> — người bán đọc trong tin báo có của ngân hàng rồi gửi mã kích hoạt tới số này
@@ -9212,6 +9212,64 @@ lecture|The professor gave a lecture on history.|Giáo sư đã giảng một b�
     const s = tlv('00', '01') + tlv('01', amount > 0 ? '12' : '11') + tlv('38', acc) + tlv('53', '704') + (amount > 0 ? tlv('54', String(Math.round(amount))) : '') +
       tlv('58', 'VN') + (m ? tlv('62', tlv('08', m)) : '') + '6304';
     return s + P.crc16(s);
+  };
+
+  // ---------- chuyển khoản TỰ ĐỘNG (bản web / APK) ----------
+  // store-config.json → "pay": { "endpoint": "https://ngoisao-pay.<…>.workers.dev" } (máy chủ mobile/pay-server, nối SePay).
+  // App tạo MÃ ĐƠN ngẫu nhiên NSA + 8 ký tự làm nội dung chuyển khoản → tiền về tài khoản của chủ app → SePay báo máy chủ
+  // → app hỏi máy chủ, nhận mã kích hoạt đã ký → tự mở gói. Không cần số điện thoại, chủ app không phải thao tác gì.
+  P.payUrl = () => { const c = CFG(), u = c && c.pay && c.pay.endpoint; return typeof u === 'string' && /^https?:\/\/[^\s"'<>]+$/.test(u) ? u.replace(/\/+$/, '') : ''; };
+  P.auto = () => !!(P.on() && P.useCodes() && P.bank() && P.payUrl());
+  const OABC = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // bỏ 0/O, 1/I/L cho dễ đọc
+  P.newOrderCode = () => { const r = new Uint8Array(8); (W.crypto || globalThis.crypto).getRandomValues(r); let s = 'NSA'; r.forEach(b => { s += OABC[b & 31]; }); return s; };
+  // đơn đang chờ tiền: meta.payo = { code, ts } — giữ 3 ngày (khách có thể chuyển khoản muộn, mở lại app vẫn tự nhận)
+  P.order = make => {
+    const o = ST.state.meta.payo, now = Date.now();
+    if (o && /^NSA[A-Z0-9]{8}$/.test(o.code || '') && now - (+o.ts || 0) < 3 * DAY) return o;
+    if (!make) return null;
+    const n = { code: P.newOrderCode(), ts: now };
+    ST.state.meta.payo = n; ST.mark('meta');
+    return n;
+  };
+  P.dropOrder = () => { if (ST.state.meta.payo) { delete ST.state.meta.payo; ST.mark('meta'); } };
+  P.paid = null; // lần thanh toán tự động vừa xong: { plan, until, amt, code }
+  let payBusy = false;
+  // hỏi máy chủ đơn đang chờ: { st: 'wait' | 'short' (got, need) | 'net' | 'err' | 'ok' (+ kết quả P.activate) }
+  P.payCheck = async () => {
+    const o = P.order(false), u = P.payUrl();
+    if (!o || !u || !P.auto() || payBusy || typeof fetch === 'undefined') return null;
+    payBusy = true;
+    try {
+      // gói đang dùng còn hạn (mã đã ký): gửi kèm để máy chủ cộng dồn hạn
+      const s = ST.state.meta.prem, q = [];
+      if (s && s.src === 'code' && s.code && +s.until > Date.now()) { q.push('prev=' + encodeURIComponent(s.code)); if (s.plan === 'trial') q.push('te=' + Math.round(+s.until)); }
+      let j;
+      try {
+        const r = await fetch(u + '/pay/order/' + o.code + (q.length ? '?' + q.join('&') : ''), { cache: 'no-store' });
+        if (!r.ok) return { st: 'err' };
+        j = await r.json();
+      } catch (e) { return { st: 'net' }; }
+      if (j && j.st === 'ok' && j.code) {
+        const a = await P.activate(j.code);
+        if (a.ok) { P.dropOrder(); P.paid = { plan: j.plan, until: j.until, amt: j.amt, code: j.code }; }
+        return Object.assign({ st: 'ok' }, a);
+      }
+      return j && j.st ? j : { st: 'err' };
+    } finally { payBusy = false; }
+  };
+  // chờ tiền về cả khi đã rời màn mua gói: lúc mở app, lúc quay lại app (vừa chuyển khoản ở app ngân hàng),
+  // và mỗi 15 giây trong 30 phút kể từ lần cuối xem mã QR
+  P.payWatch = onDone => {
+    if (!W.document || !P.auto()) return;
+    const tick = async () => {
+      if (!P.order(false) || W.document.visibilityState === 'hidden') return;
+      const r = await P.payCheck();
+      if (r && r.st === 'ok' && r.ok && onDone) onDone(r);
+    };
+    W.document.addEventListener('visibilitychange', () => { if (W.document.visibilityState === 'visible') tick(); });
+    try { const C = W.Capacitor && W.Capacitor.Plugins && W.Capacitor.Plugins.App; if (C && C.addListener && P.native()) C.addListener('resume', tick); } catch (e) { /* bỏ qua */ }
+    setInterval(() => { const o = P.order(false); if (o && Date.now() - (+o.seen || +o.ts) < 30 * 60000) tick(); }, 15000);
+    tick();
   };
 
   // ---------- quyền lợi hiện tại ----------
@@ -9251,6 +9309,11 @@ lecture|The professor gave a lecture on history.|Giáo sư đã giảng một b�
   let PUB = { kty: 'EC', crv: 'P-256', x: 'fAVzO9PcCMY1VumimOLTirGd9PYgu0aH1BGxvvZYc-0', y: 'RT9m8Ysk6PRYRP34xVnhHydI_y-DcMYRLppxiN41nJo' };
   let pubKey = null;
   P._setPub = jwk => { PUB = jwk; pubKey = null; }; // chỉ dùng cho kiểm thử
+  // khóa công khai thứ hai: mã gói do máy chủ thanh toán tự động ký (khóa riêng nằm trên máy chủ, tách khỏi khóa của chủ app;
+  // chỉ nhận mã gói phiên bản 1 có sê-ri bit cao — mã dùng thử vẫn phải do chủ app ký)
+  let AUTO_PUB = { kty: 'EC', crv: 'P-256', x: '3p-R2JqF1ddAj6cCnUypF6b2GVhYmgu8HLCfJNFsW6s', y: 'dxVnGr07uUil2Hd2IchpWBBvlZtIrCQSG7oN6Ab7AjE' };
+  let autoKey = null;
+  P._setAutoPub = jwk => { AUTO_PUB = jwk; autoKey = null; }; // chỉ dùng cho kiểm thử
   P.pubJwk = () => ({ kty: PUB.kty, crv: PUB.crv, x: PUB.x, y: PUB.y });
   const b64uDec = s => { s = String(s).replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; const b = atob(s), u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; };
   const subtle = () => (W.crypto && W.crypto.subtle) || (globalThis.crypto && globalThis.crypto.subtle) || null;
@@ -9284,7 +9347,13 @@ lecture|The professor gave a lecture on history.|Giáo sư đã giảng một b�
     if (!S || typeof TextEncoder === 'undefined') return { ok: false, why: 'crypto' };
     try {
       if (!pubKey) pubKey = await S.importKey('jwk', PUB, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['verify']);
-      const good = await S.verify({ name: 'ECDSA', hash: 'SHA-256' }, pubKey, b64uDec(c.sig), new TextEncoder().encode(c.msg));
+      const sig = b64uDec(c.sig), msg = new TextEncoder().encode(c.msg);
+      let good = await S.verify({ name: 'ECDSA', hash: 'SHA-256' }, pubKey, sig, msg);
+      if (!good && AUTO_PUB && !c.trial && c.serial >= 0x80000000) {
+        if (!autoKey) autoKey = await S.importKey('jwk', AUTO_PUB, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['verify']);
+        good = await S.verify({ name: 'ECDSA', hash: 'SHA-256' }, autoKey, sig, msg);
+        if (good) c.auto = true;
+      }
       if (!good) return { ok: false, why: 'sig' };
     } catch (e) { return { ok: false, why: 'crypto' }; }
     if (c.until <= Date.now() && !(c.trial && o && o.keep)) return { ok: false, why: c.trial ? 'trialExpired' : 'expired', c: c };
@@ -11832,16 +11901,30 @@ var qrcode = function() {
       try { plain = await S.decrypt({ name: 'AES-GCM', iv: unb64u(b.i) }, aes, unb64u(b.c)); } catch (e) { return wrong(); }
     } catch (e) { return { ok: false, why: 'crypto' }; }
     try {
-      const d = JSON.parse(new TextDecoder().decode(plain)).d, pub = P.pubJwk();
+      const dec = JSON.parse(new TextDecoder().decode(plain)), d = dec.d, pub = P.pubJwk();
       const key = await S.importKey('jwk', { kty: 'EC', crv: 'P-256', x: pub.x, y: pub.y, d: d, ext: false }, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign']);
       // thử ký và kiểm tra bằng khóa công khai của ứng dụng: khóa giải ra phải khớp
       const t = await O.sign(key, 'NSA1.AAAAAAAAAAA');
       if (!t) return { ok: false, why: 'crypto' };
       O.key = key; O.fails = 0;
+      O.payKey = typeof dec.pk === 'string' ? dec.pk : ''; // khóa xem sổ đơn chuyển khoản tự động (có từ bản có máy chủ thanh toán)
       return { ok: true };
     } catch (e) { return { ok: false, why: 'crypto' }; }
   };
-  O.logout = () => { O.key = null; };
+  O.logout = () => { O.key = null; O.payKey = ''; O.orders = null; };
+  // ---------- đơn chuyển khoản tự động (máy chủ thanh toán, xem mobile/pay-server) ----------
+  O.payKey = ''; O.orders = null; // { list, total, ts } | { err }
+  O.loadOrders = async () => {
+    const u = P.payUrl ? P.payUrl() : '';
+    if (!u || !O.payKey || typeof fetch === 'undefined') return null;
+    try {
+      const r = await fetch(u + '/pay/orders', { headers: { 'X-Owner-Key': O.payKey }, cache: 'no-store' });
+      let j = null;
+      try { j = await r.json(); } catch (e) { j = null; }
+      O.orders = r.ok && j && j.ok ? { list: Array.isArray(j.orders) ? j.orders : [], total: +j.total || 0, ts: Date.now() } : { err: (j && j.error) || 'HTTP ' + r.status };
+    } catch (e) { O.orders = { err: 'net' }; }
+    return O.orders;
+  };
   O.sign = async (key, msg) => {
     const S = subtle(), data = new TextEncoder().encode(msg);
     const sig = new Uint8Array(await S.sign({ name: 'ECDSA', hash: 'SHA-256' }, key, data));
@@ -17140,7 +17223,29 @@ var qrcode = function() {
   const phoneOk = ph => P.phone(ph).length >= 9;
   const qrInner = (m, amt) => phoneOk(m.phone) ? qrSvg(P.vietqr(amt, P.memo(m.plan, m.phone)))
     : '<span class="pw-qr-wait">' + I('smartphone') + 'Nhập số điện thoại nhận mã ở dưới để hiện mã QR</span>';
+  // chuyển khoản TỰ ĐỘNG: nội dung là mã đơn của máy này — tiền về là app tự mở gói, không cần số điện thoại
+  const waitHtml = m => {
+    const r = m.pay || {}, min = Math.min.apply(null, P.PLANS.map(p => P.vnd(p.k)));
+    if (r.st === 'short') return '<div class="pw-err" role="alert">' + I('triangle-alert') + '<span>Đã nhận ' + P.money(r.got || 0) + ' — chưa đủ gói thấp nhất (' + P.money(r.need || min) + '). Chuyển thêm cho đủ với đúng nội dung trên, hoặc liên hệ người bán.</span></div>';
+    return '<span class="spin" aria-hidden="true"></span><span><b>Đang chờ tiền về…</b><small>' + (r.st === 'net' ? 'Chưa kết nối được máy chủ — kiểm tra Internet, app vẫn đang chờ.' : 'Chuyển xong, quay lại app là gói tự mở sau vài giây.') + '</small></span>';
+  };
+  const autoBox = (m, bank) => {
+    const amt = P.vnd(m.plan), pl = P.plan(m.plan), o = P.order(true);
+    o.seen = Date.now();
+    return '<div class="pw-bank auto"><b class="pw-bank-h">' + I('zap') + 'Chuyển khoản — app tự mở gói</b>' +
+      '<div class="pw-bank-row"><div class="pw-qr" id="pw-qr" aria-label="Mã QR chuyển khoản ' + P.money(amt) + '">' + qrSvg(P.vietqr(amt, o.code)) + '</div>' +
+      '<dl class="pw-bank-dl"><dt>Ngân hàng</dt><dd>' + esc(bank.bankName || '') + '</dd>' +
+      '<dt>Số tài khoản</dt><dd><b>' + esc(bank.account) + '</b> <button class="linkbtn" data-a="pwCopy" data-v="' + esc(bank.account) + '">' + I('copy') + 'Chép</button></dd>' +
+      '<dt>Chủ tài khoản</dt><dd>' + esc(bank.name || '') + '</dd>' +
+      '<dt>Số tiền</dt><dd><b>' + P.money(amt) + '</b> · ' + esc(pl ? pl.name : '') + '</dd>' +
+      '<dt>Nội dung</dt><dd><b id="pw-memo">' + esc(o.code) + '</b> <button class="linkbtn" data-a="pwCopyOrder">' + I('copy') + 'Chép</button></dd></dl></div>' +
+      '<div class="pw-wait" id="pw-wait" role="status" aria-live="polite">' + waitHtml(m) + '</div>' +
+      '<ol><li>Mở app ngân hàng, quét mã QR: số tiền và nội dung đã điền sẵn. Đang dùng chính máy này thì chụp màn hình rồi chọn quét mã từ ảnh, hoặc chép số tài khoản và nội dung.</li>' +
+      '<li>Chuyển xong, quay lại app: gói tự mở sau vài giây, không cần nhập mã.</li></ol>' +
+      '<p class="pw-fine">Giữ nguyên nội dung <b>' + esc(o.code) + '</b> để app nhận ra khoản chuyển của bạn. Còn hạn gói cũ thì được cộng dồn.</p></div>';
+  };
   const bankBox = (m, bank) => {
+    if (P.auto()) return autoBox(m, bank);
     const amt = P.vnd(m.plan), pl = P.plan(m.plan), memo = P.memo(m.plan, m.phone) + (phoneOk(m.phone) ? '' : ' <SĐT>');
     return '<div class="pw-bank"><b class="pw-bank-h">' + I('key-round') + 'Chuyển khoản để nhận mã kích hoạt</b>' +
       '<label class="pw-phone"><span>Số điện thoại nhận mã (Zalo hoặc tin nhắn)</span><input id="pw-phone" class="input" type="tel" inputmode="tel" autocomplete="tel" maxlength="14" placeholder="09xx xxx xxx" value="' + esc(m.phone || '') + '"></label>' +
@@ -17168,6 +17273,32 @@ var qrcode = function() {
     try { if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done, fb); else fb(); } catch (e) { fb(); }
   };
   A.pwCopy = d => copyTxt(d.v, 'Đã chép số tài khoản');
+  A.pwCopyOrder = () => { const o = P.order(false); if (o) copyTxt(o.code, 'Đã chép nội dung chuyển khoản'); };
+  A.pwCopyPaid = () => { if (P.paid && P.paid.code) copyTxt(P.paid.code, 'Đã chép mã kích hoạt'); };
+  // màn mua gói đang mở: hỏi máy chủ mỗi 4 giây (10 phút đầu), sau đó mỗi 12 giây
+  let payTicks = 0;
+  const payTick = async () => {
+    const m = M_();
+    if (!m || m.step !== 'plans' || !P.auto() || typeof document === 'undefined' || document.visibilityState === 'hidden' || !document.getElementById('pw-wait')) { payTicks = 0; return; }
+    if (++payTicks > 150 && payTicks % 3) return;
+    const r = await P.payCheck();
+    if (M_() !== m || !r) return;
+    if (r.st === 'ok' && r.ok) { UI.payDone(r); return; }
+    if (r.st === 'ok') { m.err = errMsg(r.why); UI.render(); return; }
+    m.pay = r;
+    const box = document.getElementById('pw-wait');
+    if (box) box.innerHTML = waitHtml(m);
+  };
+  if (typeof document !== 'undefined') setInterval(payTick, 4000);
+  // tiền về (từ màn mua gói hoặc lúc mở / quay lại app): báo đã mở gói
+  UI.payDone = r => {
+    const m = M_();
+    if (m && m.step === 'done') return;
+    if (m) Object.assign(m, { step: 'done', longer: !!r.longer, paid: true, err: '' }); else UI.openModal('prem', { step: 'done', longer: !!r.longer, paid: true });
+    if (UI.SFX && UI.SFX.win) UI.SFX.win();
+    if (UI.confetti) UI.confetti();
+    UI.render();
+  };
   A.pwCopyMemo = () => { const m = M_(); if (!m) return; if (!phoneOk(m.phone)) { UI.toast('Nhập số điện thoại nhận mã trước nhé'); const i = document.getElementById('pw-phone'); if (i) i.focus(); return; } copyTxt(P.memo(m.plan, m.phone), 'Đã chép nội dung chuyển khoản'); };
   const plansStep = m => {
     const store = P.channel() === 'store', st = P.store, sv = save();
@@ -17210,11 +17341,13 @@ var qrcode = function() {
     '<div class="row"><button class="btn primary grow" data-a="pwActivate"' + (m.busy ? ' disabled' : '') + '>' + I('lock-open') + 'Kích hoạt</button><button class="btn ghost" data-a="pwBack">Quay lại</button></div></div>';
   const doneStep = m => {
     const e = P.ent || {}, store = e.src === 'store', trial = e.plan === 'trial';
-    return '<div class="pw-done"><span class="pw-crown on" aria-hidden="true">' + I(trial ? 'gift' : 'crown') + '</span><h2>' + (trial ? 'Đã mở dùng thử Premium!' : 'Đã mở khóa Premium!') + '</h2>' +
+    const paid = m.paid && P.paid && P.paid.code;
+    return '<div class="pw-done"><span class="pw-crown on" aria-hidden="true">' + I(trial ? 'gift' : 'crown') + '</span><h2>' + (trial ? 'Đã mở dùng thử Premium!' : paid ? 'Đã nhận thanh toán — Premium đã mở!' : 'Đã mở khóa Premium!') + '</h2>' +
       '<p><b>' + esc(planName(e.plan)) + '</b>' + (store ? ' · tự gia hạn qua ' + P.storeName() : e.until ? (trial ? ' ' + daysLeft(e.until) + ' ngày' : '') + ' · dùng đến <b>' + dateVi(e.until) + '</b>' : '') + '</p>' +
       (m.longer ? '<p class="muted">Gói đang dùng còn hạn lâu hơn mã vừa nhập nên được giữ nguyên.</p>'
         : trial ? '<p class="muted">Con học trọn bộ đến hết ngày này. Sau đó bố mẹ chọn gói để học tiếp; phần miễn phí vẫn dùng bình thường.</p>'
         : '<p class="muted">Mọi bài học của ' + HV.BRAND + ' đã sẵn sàng cho các con.</p>') +
+      (paid ? '<details class="pw-paidcode"><summary>Mở gói trên máy khác trong nhà</summary><p class="muted">Dán mã này vào Góc phụ huynh → Gói Premium → Nhập mã kích hoạt trên máy kia:</p><code>' + esc(P.paid.code) + '</code><button class="btn sm ghost" data-a="pwCopyPaid">' + I('copy') + 'Chép mã</button></details>' : '') +
       '<button class="btn accent big block" data-a="pwDoneGo">' + I('play') + 'Học ngay</button></div>';
   };
   M.prem = m => {
@@ -17308,6 +17441,7 @@ var qrcode = function() {
       if (r && r.ok) { UI.openModal('prem', { step: 'done', longer: !!r.longer }); UI.confetti(); }
       else if (r) UI.toast(errMsg(r.why) || 'Mã kích hoạt không hợp lệ');
     });
+    if (P.payWatch) P.payWatch(UI.payDone);
     P.fromLink().then(r => {
       if (!r) { if (P.trialEnded && !UI.S.modal) UI.paywall({ ended: true }); return; }
       if (r.ok) { UI.openModal('prem', { step: 'done', longer: !!r.longer }); UI.confetti(); }
@@ -17401,6 +17535,11 @@ var qrcode = function() {
   A.ownerCopyLink = d => { const r = recBy(d.s); if (r) copy(O.link(r), 'Đã chép link cài app kèm mã'); };
   A.ownerOpenRow = d => { const st = S(); st.open = st.open === String(d.s) ? '' : String(d.s); UI.render(); };
   A.ownerCsv = () => UI.DL.save('so-ma-kich-hoat-' + new Date().toISOString().slice(0, 10) + '.csv', O.csv());
+  // sổ đơn chuyển khoản tự động
+  let payLoading = false;
+  const payLoad = () => { if (payLoading) return; payLoading = true; O.loadOrders().then(() => { payLoading = false; if (UI.S.screen === 'owner') UI.render(); }); };
+  A.ownerPayRefresh = () => { O.orders = null; payLoad(); UI.render(); };
+  A.ownerPayCopy = d => { const o = O.orders && O.orders.list ? O.orders.list.find(x => x.code === d.c) : null; if (o && o.n) copy(o.n, 'Đã chép mã kích hoạt của đơn'); };
 
   // giữ chữ đang gõ khi màn hình vẽ lại (đổi loại mã, tạo mã…)
   UI.preRender.push(() => {
@@ -17457,12 +17596,31 @@ var qrcode = function() {
       (rows ? '<div class="ow-log">' + rows + '</div>' + (log.length > 60 ? '<p class="muted">Hiện 60 mã gần nhất — tải tệp để xem đủ.</p>' : '') + '<div class="row wrapr" style="gap:8px"><button class="btn ghost" data-a="ownerCsv">' + I('download') + 'Tải sổ mã (Excel CSV)</button></div>'
         : '<p class="muted">Chưa có mã nào. Mã anh tạo sẽ hiện ở đây để gửi lại khi cần. Sổ chỉ lưu trên máy này.</p>') + '</section>';
   };
+  const PLAN_VI = { week: 'Gói Tuần', month: 'Gói Tháng', year: 'Gói Năm' };
+  const payCard = () => {
+    if (!(P.payUrl && P.payUrl())) return '';
+    if (!O.payKey) return '<section class="card stack"><h3>' + I('zap') + ' Chuyển khoản tự động</h3><p class="muted">Đang bật. Khách chuyển khoản xong là app tự mở gói. Bản app này chưa có khóa xem sổ đơn — xem đơn trong app SePay.</p></section>';
+    const od = O.orders;
+    if (!od) payLoad();
+    const tm = t => { const d = new Date(+t || 0); return O.dateVi(+t || 0) + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
+    const row = o => {
+      const st = o.s === 'paid' ? (o.n ? 'Đã mở ' + (PLAN_VI[o.p] || 'gói') + ' · đến ' + O.dateVi(o.u) : 'Đã nhận tiền · chờ app của khách nhận mã') : o.s === 'short' ? 'Chưa đủ tiền gói thấp nhất — liên hệ khách' : o.s === 'nocode' ? 'Không có mã đơn: “' + (o.x || '') + '” — tự tạo mã cho khách nếu cần' : o.s;
+      const warn = o.s === 'short' || o.s === 'nocode';
+      return '<div class="ow-row ow-pay' + (warn ? ' warn' : '') + '"><div class="ow-row-h"><span class="grow"><b>' + money(o.a || 0) + ' · ' + esc(st) + '</b><small>' + tm(o.t) + (o.code && o.code[0] !== '_' ? ' · ' + esc(o.code) : '') + '</small></span>' +
+        (o.n ? '<button class="btn sm ghost" data-a="ownerPayCopy" data-c="' + esc(o.code) + '">' + I('copy') + 'Chép mã</button>' : '') + '</div></div>';
+    };
+    const body = !od ? '<p class="muted">Đang tải sổ đơn…</p>' : od.err ? '<div class="pw-err" role="alert">' + I('cloud-off') + '<span>Chưa tải được sổ đơn (' + esc(od.err === 'net' ? 'kiểm tra Internet' : od.err) + ').</span></div>'
+      : od.list.length ? '<div class="ow-log">' + od.list.slice(0, 50).map(row).join('') + '</div>' : '<p class="muted">Chưa có đơn nào. Khách chuyển khoản xong sẽ hiện ở đây.</p>';
+    return '<section class="card stack"><h3>' + I('zap') + ' Chuyển khoản tự động' + (od && od.list ? ' <small class="muted">(' + od.total + ' đơn)</small>' : '') + '</h3>' +
+      '<p class="muted">Khách chuyển khoản xong là app tự mở gói, anh không cần làm gì. Đơn báo vàng là khách chuyển thiếu hoặc quên nội dung — tạo mã tay ở trên nếu cần.</p>' + body +
+      '<div class="row wrapr"><button class="btn ghost" data-a="ownerPayRefresh">' + I('refresh-cw') + 'Làm mới</button></div></section>';
+  };
   V.owner = () => {
     if (!PS().unlocked || !O.isOwnerDevice()) return V.picker();
     const st = S();
     const head = UI.topbar({ back: 'ownerBack', title: 'Khu vực chủ app', sub: O.logged() ? 'Đã đăng nhập · tạo mã cho khách' : 'Chỉ máy của chủ app thấy mục này', right: O.logged() ? '<button class="btn sm on-dark" data-a="ownerLogout">' + I('log-out') + 'Đăng xuất</button>' : '' });
     if (!O.logged()) return head + '<div class="wrap">' + loginCard(st) + '</div>';
-    return head + '<div class="wrap stack">' + (st.last ? resultCard(st.last) : '') + makeCard(st) + logCard(st) + '</div>';
+    return head + '<div class="wrap stack">' + (st.last ? resultCard(st.last) : '') + payCard() + makeCard(st) + logCard(st) + '</div>';
   };
 })(globalThis.HV = globalThis.HV || {});
 

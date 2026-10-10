@@ -118,6 +118,21 @@ trên máy đã kích hoạt bằng mã chủ app (sê-ri trong `owner-config.js
 `owner-config.json` do `node web-src/tools-owner.js` tạo từ thư mục BAO-MAT (công khai được: không có mật khẩu thì không giải được);
 `--mat-khau-moi` đổi mật khẩu. Kiểm thử: `python3 web-src/test/owner_test.py`.
 
+**Chuyển khoản tự động (khách chuyển xong là app tự mở gói):** máy chủ `pay-server/` (Cloudflare Workers, gói miễn phí) + SePay
+(đọc thông báo giao dịch của tài khoản ảo BIDV nối với tài khoản thật — tiền về thẳng tài khoản chủ app, SePay và máy chủ không giữ tiền).
+1. App tạo mã đơn `NSA` + 8 ký tự ngẫu nhiên làm nội dung chuyển khoản (mã QR VietQR đúng số tiền, tới `bank.account` = tài khoản ảo).
+2. SePay gửi webhook `POST /pay/sepay` (xác thực HMAC-SHA256 `X-SePay-Signature` hoặc `Authorization: Apikey …`; trả đúng `{"success": true}`).
+   Máy chủ ghi đơn vào KV, số tiền → gói theo bảng giá (`prices` trong `store-config.json`); thiếu tiền → "chưa đủ", chuyển thêm thì cộng.
+3. App hỏi `GET /pay/order/<mã đơn>` (mỗi 4 giây khi đang mở màn mua gói; khi mở / quay lại app; mỗi 15 giây trong 30 phút) → máy chủ ký mã
+   NSA1 gói bằng **khóa riêng của máy chủ** (`PAY_SIGN_KEY`; app có khóa công khai thứ hai `AUTO_PUB`, chỉ nhận mã gói có sê-ri bit cao) →
+   app tự kích hoạt. Còn hạn gói cũ thì cộng dồn (app gửi kèm mã đang dùng, máy chủ kiểm chữ ký rồi cộng).
+4. Chủ app đăng nhập Khu vực chủ app → thẻ "Chuyển khoản tự động" xem sổ đơn (`GET /pay/orders`, khóa xem nằm trong khối khóa đã mã hóa).
+Bật: `store-config.json` → `"pay": { "endpoint": "https://ngoisao-pay.<tên miền phụ>.workers.dev" }` và `bank.account` = số tài khoản ảo.
+Chưa có `pay` thì app giữ cách cũ (số điện thoại + chủ app gửi mã). Triển khai: `.github/workflows/pay.yml` chạy `pay-server/deploy.mjs`
+(Cloudflare API: tạo KV, tải máy chủ, bật workers.dev, kiểm tra) khi có GitHub Secrets `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`,
+`PAY_SIGN_KEY` (tệp `BAO-MAT/PAY_SIGN_KEY.txt`), `SEPAY_SECRET`. Địa chỉ máy chủ và webhook hiện ở Summary của lần chạy.
+Kiểm thử: `node pay-server/test/worker.test.mjs`, `node pay-server/test/deploy.test.mjs`, `python3 web-src/test/pay_test.py` (đầu–cuối).
+
 Kiểm thử: `node web-src/test/premium.test.js` (mã kích hoạt, phạm vi miễn phí, giả lập StoreKit / Play Billing) và
 `python3 web-src/test/premium_test.py` (giao diện: bản miễn phí, cổng phụ huynh, nhập mã, link kích hoạt, mua trên iOS/Android giả lập).
 Quyền lợi được kiểm tra ngay trên máy (giao dịch StoreKit 2 đã xác minh / Play Billing); muốn chống gian lận chặt hơn có thể thêm máy chủ xác minh hóa đơn sau.
